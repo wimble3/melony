@@ -33,5 +33,8 @@ class BaseBroker(ABC):
                 bound_args=bound.arguments
             )
         
-        wrapper.__annotations__ = {**func.__annotations__, "return": TaskWrapper[TaskParams, TaskResult]}
+        wrapper.__annotations__ = {
+            **func.__annotations__,  # noqa
+            "return": TaskWrapper[TaskParams, TaskResult]
+        }
         return wrapper

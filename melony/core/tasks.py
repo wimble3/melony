@@ -46,7 +46,11 @@ class TaskWrapper(Awaitable):
         await self._broker.push(task, countdown=countdown)
         return task
 
-    def __call__(self, *args: TaskParams.args, **kwargs: TaskParams.kwargs) -> "TaskWrapper":
+    def __call__(
+            self,
+            *args: TaskParams.args,
+            **kwargs: TaskParams.kwargs
+    ) -> "TaskWrapper":
         bound = self._sig.bind(*args, **kwargs)
         bound.apply_defaults()
         return TaskWrapper(
