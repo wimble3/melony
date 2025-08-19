@@ -9,25 +9,25 @@ if TYPE_CHECKING:
     from melony.core.brokers import BaseBroker
 
 logger = getLogger(__name__)
-P = ParamSpec("P")
-R = TypeVar("R")
+TaskParams = ParamSpec("TaskParams")
+TaskResult = TypeVar("TaskResult")
 
 
 @dataclass(frozen=True)
 class Task:
     task_id: str
-    func: Callable[P, R]
+    func: Callable[TaskParams, TaskResult]
     kwargs: dict[str, Any]
     broker: BaseBroker
 
-    async def result(self) -> R:
+    async def result(self) -> TaskResult:
         ...
 
 
 class TaskWrapper(Awaitable):
     def __init__(
             self,
-            func: Callable[P, R],
+            func: Callable[TaskParams, TaskResult],
             broker: BaseBroker,
             bound_args: dict | None = None
     ) -> None:
@@ -46,7 +46,7 @@ class TaskWrapper(Awaitable):
         await self._broker.push(task, countdown=countdown)
         return task
 
-    def __call__(self, *args: P.args, **kwargs: P.kwargs) -> "TaskWrapper":
+    def __call__(self, *args: TaskParams.args, **kwargs: TaskParams.kwargs) -> "TaskWrapper":
         bound = self._sig.bind(*args, **kwargs)
         bound.apply_defaults()
         return TaskWrapper(

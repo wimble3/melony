@@ -5,8 +5,8 @@ from typing import Callable, ParamSpec, TypeVar
 
 from core.tasks import Task, TaskWrapper
 
-P = ParamSpec("P")
-R = TypeVar("R")
+TaskParams = ParamSpec("TaskParams")
+TaskResult = TypeVar("TaskResult")
 
 
 class BaseBroker(ABC):
@@ -14,19 +14,24 @@ class BaseBroker(ABC):
     async def push(self, task: Task, countdown: int = 0) -> None:
         ...
 
-    def task(self, func: Callable[P, R]) -> Callable[P, TaskWrapper[P, R]]:
+    def task(
+            self,
+            func: Callable[TaskParams, TaskResult]
+    ) -> Callable[TaskParams, TaskWrapper[TaskParams, TaskResult]]:
         @wraps(func)
-        def wrapper(*args: P.args, **kwargs: P.kwargs) -> TaskWrapper[P, R]:
+        def wrapper(
+                *args: TaskParams.args,
+                **kwargs: TaskParams.kwargs
+        ) -> TaskWrapper[TaskParams, TaskResult]:
             sig = signature(func)
             bound = sig.bind(*args, **kwargs)
             bound.apply_defaults()
             
-            return TaskWrapper[P, R](
+            return TaskWrapper[TaskParams, TaskResult](
                 func=func,
                 broker=self,
                 bound_args=bound.arguments
             )
         
-        # Copy the original function's type hints to the wrapper
-        wrapper.__annotations__ = {**func.__annotations__, 'return': TaskWrapper[P, R]}
+        wrapper.__annotations__ = {**func.__annotations__, "return": TaskWrapper[TaskParams, TaskResult]}
         return wrapper
