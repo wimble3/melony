@@ -20,9 +20,17 @@ class Task:
     kwargs: dict[str, Any]
     broker: BaseBroker
 
+    async def result(self) -> R:
+        ...
+
 
 class TaskWrapper(Awaitable):
-    def __init__(self, func: Callable[P, R], broker: BaseBroker, bound_args: dict | None = None):
+    def __init__(
+            self,
+            func: Callable[P, R],
+            broker: BaseBroker,
+            bound_args: dict | None = None
+    ) -> None:
         self._func = func
         self._broker = broker
         self._sig = signature(func)
