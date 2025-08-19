@@ -3,7 +3,7 @@ from functools import wraps
 from inspect import signature
 from typing import Callable, ParamSpec, TypeVar
 
-from core.tasks import Task, TaskWrapper
+from core.tasks import TaskWrapper, Task
 
 TaskParams = ParamSpec("TaskParams")
 TaskResult = TypeVar("TaskResult")
@@ -34,7 +34,7 @@ class BaseBroker(ABC):
             )
         
         wrapper.__annotations__ = {
-            **func.__annotations__,  # noqa
+            **func.__annotations__,
             "return": TaskWrapper[TaskParams, TaskResult]
         }
         return wrapper

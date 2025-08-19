@@ -5,7 +5,7 @@ from melony.core.brokers import BaseBroker
 
 
 class RedisBroker(BaseBroker):
-    _QUEUE_PREFIX = "tasks:"
+    _queue_prefix = "tasks:"
 
     def __init__(self, connection_str: str) -> None:
         self._connection = Redis.from_url(connection_str)
