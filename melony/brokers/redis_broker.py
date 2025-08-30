@@ -1,6 +1,6 @@
 from redis.asyncio.client import Redis
 
-from core.tasks import TaskWrapper
+from melony.core.tasks import Task
 from melony.core.brokers import BaseBroker
 
 
@@ -10,5 +10,8 @@ class RedisBroker(BaseBroker):
     def __init__(self, connection_str: str) -> None:
         self._connection = Redis.from_url(connection_str)
 
-    async def push(self, task_wrapper: TaskWrapper, countdown: int = 0) -> None:
+    async def push(
+            self,
+            task: Task,
+    ) -> None:
         ...

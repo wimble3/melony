@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="Black">
-    <option name="sdkName" value="Python 3.11 (melony)" />
+    <option name="sdkName" value="Python 3.12 virtualenv at ~/_work/melony/.venv" />
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.12 (melony)" project-jdk-type="Python SDK" />
+  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.12 virtualenv at ~/_work/melony/.venv" project-jdk-type="Python SDK" />
 </project>

@@ -3,7 +3,7 @@ from functools import wraps
 from inspect import signature
 from typing import Callable, ParamSpec, TypeVar
 
-from core.tasks import TaskWrapper, Task
+from melony.core.tasks import TaskWrapper, Task
 
 TaskParams = ParamSpec("TaskParams")
 TaskResult = TypeVar("TaskResult")
@@ -11,30 +11,30 @@ TaskResult = TypeVar("TaskResult")
 
 class BaseBroker(ABC):
     @abstractmethod
-    async def push(self, task: Task, countdown: int = 0) -> None:
+    async def push(self, task: Task) -> None:
         ...
 
     def task(
             self,
             func: Callable[TaskParams, TaskResult]
-    ) -> Callable[TaskParams, TaskWrapper[TaskParams, TaskResult]]:
+    ) -> Callable[TaskParams, TaskWrapper]:
         @wraps(func)
         def wrapper(
                 *args: TaskParams.args,
                 **kwargs: TaskParams.kwargs
-        ) -> TaskWrapper[TaskParams, TaskResult]:
+        ) -> TaskWrapper:
             sig = signature(func)
             bound = sig.bind(*args, **kwargs)
             bound.apply_defaults()
-            
-            return TaskWrapper[TaskParams, TaskResult](
+
+            return TaskWrapper(
                 func=func,
                 broker=self,
                 bound_args=bound.arguments
             )
-        
+
         wrapper.__annotations__ = {
             **func.__annotations__,
-            "return": TaskWrapper[TaskParams, TaskResult]
+            "return": TaskWrapper
         }
         return wrapper
