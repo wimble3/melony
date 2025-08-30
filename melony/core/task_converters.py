@@ -6,9 +6,9 @@ from melony.core.tasks import Task
 
 class ITaskConverter(ABC):
     @abstractmethod
-    def serialize(self, task: Task) -> Any:
+    def serialize_task(self, task: Task) -> Any:
         ...
 
     @abstractmethod
-    def deserialize(self, serialized_task: Any) -> Task:
+    def deserialize_task(self, serialized_task: Any) -> Task:
         ...

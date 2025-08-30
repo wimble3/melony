@@ -12,6 +12,7 @@ class MockBroker(BaseBroker, JsonTaskConverter):
             self,
             task: Task,
     ) -> None:
-        converted_task = self.serialize(task)
+        converted_task = self.serialize_task(task)
         self._queue.append(converted_task)
         log_info(f"Queue (len: {len(self._queue)}): {self._queue}")
+        log_info(str(self.deserialize_task(converted_task)))

@@ -1,7 +1,6 @@
 from dataclasses import asdict, dataclass
 from inspect import signature
 from json import dumps
-from logging import getLogger
 from typing import Callable, Any, TYPE_CHECKING, TypeVar, ParamSpec, Awaitable
 from uuid import uuid4
 from classes import typeclass
@@ -10,7 +9,7 @@ from classes import typeclass
 if TYPE_CHECKING:
     from melony.core.brokers import BaseBroker
 
-logger = getLogger(__name__)
+
 _TaskParams = ParamSpec("_TaskParams")
 _TaskResult = TypeVar("_TaskResult")
 _MAX_COUNTDOWN_SEC = 900
@@ -69,12 +68,12 @@ class TaskWrapper(Awaitable):
             self,
             func: Callable[_TaskParams, _TaskResult],
             broker: "BaseBroker",
-            bound_args: dict | None = None
     ) -> None:
         self._func = func
         self._broker = broker
         self._sig = signature(func)
-        self._bound_args = bound_args or {}
+        self._bound_args = {}
+        self._func_path = f"{func.__module__}.{func.__qualname__}"
 
     def __call__(
             self,
@@ -83,11 +82,8 @@ class TaskWrapper(Awaitable):
     ) -> "TaskWrapper":
         bound = self._sig.bind(*args, **kwargs)
         bound.apply_defaults()
-        return TaskWrapper(
-            func=self._func,
-            broker=self._broker,
-            bound_args=bound.arguments
-        )
+        self._bound_args = bound.arguments
+        return self
 
     def __await__(self) -> Any:
         raise RuntimeError(
