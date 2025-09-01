@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 
-class BaseConsumer(ABC):
+class IConsumer(ABC):
     @abstractmethod
-    async def start_consume(self):
+    async def start_consume(self) -> None:
         ...

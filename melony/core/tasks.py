@@ -1,3 +1,4 @@
+from datetime import datetime
 from dataclasses import asdict, dataclass
 from inspect import signature
 from json import dumps
@@ -16,11 +17,12 @@ _MAX_COUNTDOWN_SEC = 900
 _MAX_COUNTDOWN_MIN = _MAX_COUNTDOWN_SEC / 60
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class _BaseTask:
     task_id: str
     kwargs: dict[str, Any]
     countdown: int
+    timestamp: float = datetime.timestamp(datetime.now())
 
     def __post_init__(self) -> None:
         self._validate_countdown()
@@ -34,16 +36,24 @@ class _BaseTask:
                 f"({_MAX_COUNTDOWN_MIN} minutes)"
             )
 
+    def _get_execution_timestamp(self) -> float:
+        return self.timestamp + self.countdown
 
-@dataclass(frozen=True)
+
+@dataclass(frozen=True, kw_only=True)
 class TaskJSONSerializable(_BaseTask):
     func_name: str
+    func_path: str
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class Task(_BaseTask):
     func: Callable
-    broker: "BaseBroker"
+    func_path: str
+    broker: "BaseBroker | None" = None
+
+    async def execute(self) -> ...:  # @@@ TODO
+        ...
 
     async def get_result(self) -> Any:
         ...
@@ -54,6 +64,7 @@ class Task(_BaseTask):
             kwargs=self.kwargs,
             countdown=self.countdown,
             func_name=self.func.__name__,
+            func_path=self.func_path
         )
 
     def as_dict(self) -> dict[str, Any]:
@@ -68,11 +79,12 @@ class TaskWrapper(Awaitable):
             self,
             func: Callable[_TaskParams, _TaskResult],
             broker: "BaseBroker",
+            bound_args: dict[str, Any]
     ) -> None:
         self._func = func
         self._broker = broker
         self._sig = signature(func)
-        self._bound_args = {}
+        self._bound_args = bound_args or {}
         self._func_path = f"{func.__module__}.{func.__qualname__}"
 
     def __call__(
@@ -94,6 +106,7 @@ class TaskWrapper(Awaitable):
         task = Task(
             task_id=str(uuid4()),
             func=self._func,
+            func_path=self._func_path,
             kwargs=self._bound_args,
             broker=self._broker,
             countdown=countdown

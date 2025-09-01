@@ -14,6 +14,10 @@ class BaseBroker(ABC):
     async def push(self, task: Task) -> None:
         ...
 
+    @abstractmethod
+    async def pop(self) -> Task | None:
+        ...
+
     def task(
             self,
             func: Callable[TaskParams, TaskResult]
