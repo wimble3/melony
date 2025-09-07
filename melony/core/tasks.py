@@ -1,6 +1,6 @@
 from datetime import datetime
 from dataclasses import asdict, dataclass
-from inspect import signature
+from inspect import signature, unwrap
 from json import dumps
 from typing import Callable, Any, TYPE_CHECKING, TypeVar, ParamSpec, Awaitable
 from uuid import uuid4
@@ -36,7 +36,7 @@ class _BaseTask:
                 f"({_MAX_COUNTDOWN_MIN} minutes)"
             )
 
-    def _get_execution_timestamp(self) -> float:
+    def get_execution_timestamp(self) -> float:
         return self.timestamp + self.countdown
 
 
@@ -52,10 +52,12 @@ class Task(_BaseTask):
     func_path: str
     broker: "BaseBroker | None" = None
 
-    async def execute(self) -> ...:  # @@@ TODO
-        ...
+    async def execute(self) -> ...:  # @@@ typing
+        unwrapped_func = unwrap(self.func)
+        task_result = await unwrapped_func(**self.kwargs)
+        return task_result
 
-    async def get_result(self) -> Any:
+    async def get_result(self) -> ...:  # @@@ typing
         ...
 
     def as_json_serializable_obj(self) -> TaskJSONSerializable:

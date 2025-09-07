@@ -17,4 +17,4 @@ def log_error(message: str) -> None:
     if _DEBUG:
         print(f"{_MELONY_LOG_PREFIX}[ERROR] {message}")  # noqa: WPS421
     else:
-        _logger.error(message)
+        _logger.error(message, exc_info=True)
