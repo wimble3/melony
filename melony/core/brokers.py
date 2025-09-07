@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import asyncio
 from datetime import datetime
 from functools import wraps
 from inspect import signature
@@ -69,3 +70,42 @@ class BaseBroker(ABC):
     @abstractmethod
     async def _execute_appropriate_tasks(self, tasks: Sequence[Task]) -> None:
         ...
+
+    async def _filter_tasks_by_execution_time(
+            self,
+            tasks: Sequence[Task]
+    ) -> Sequence[Task]:
+        tasks_to_execute: list[Task] = []
+        for task in tasks:
+            task_execution_timestamp = task.get_execution_timestamp()
+            if task_execution_timestamp < datetime.timestamp(datetime.now()):
+                tasks_to_execute.append(task)
+            else:
+                await self.push(task)
+
+        return tasks_to_execute
+
+    async def _execute_tasks(self, tasks: Sequence[Task]) -> None:
+        task_map = {}
+        asyncio_tasks = []
+        
+        for task in tasks:
+            asyncio_task = asyncio.create_task(task.execute())
+            task_map[asyncio_task] = task
+            asyncio_tasks.append(asyncio_task)
+        
+        pending = set(asyncio_tasks)
+        
+        while pending:
+            done, pending = await asyncio.wait(
+                pending, return_when=asyncio.FIRST_COMPLETED
+            )
+            for completed_asyncio_task in done:
+                task = task_map[completed_asyncio_task]
+                try:
+                    result = await completed_asyncio_task
+                    log_info(f"Task '{task}' completed: {result}")
+                except Exception as e:
+                    log_error(
+                        f"Unexpected error while task {task} execution: {e}"
+                    )

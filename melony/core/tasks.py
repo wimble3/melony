@@ -2,7 +2,7 @@ from datetime import datetime
 from dataclasses import asdict, dataclass
 from inspect import signature, unwrap
 from json import dumps
-from typing import Callable, Any, TYPE_CHECKING, TypeVar, ParamSpec, Awaitable
+from typing import Callable, Any, TYPE_CHECKING, Sequence, TypeVar, ParamSpec, Awaitable
 from uuid import uuid4
 from classes import typeclass
 
@@ -127,4 +127,12 @@ async def _revoke_impl(instance: str) -> None:
 
 
 async def _revoke_bulk_impl(instance: list[str]) -> None:
+    ...
+
+
+async def filter_tasks_by_execution_time(tasks: Sequence[Task]) -> None:
+    ...
+
+
+async def execute_tasks(tasks: Sequence[Task]) -> None:
     ...
