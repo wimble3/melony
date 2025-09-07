@@ -50,8 +50,8 @@ class BaseBroker(ABC):
         while True:
             try:
                 await self._consumer_loop(start_time)
-            except Exception as e:
-                log_error(f"Unexpected error at consuming process: {e}")
+            except Exception as exc:
+                log_error(f"Unexpected error at consuming process: {exc}")
 
     async def _consumer_loop(self, start_time) -> None:
         log_info(f"time spent: {datetime.now() - start_time}")
@@ -86,8 +86,8 @@ class BaseBroker(ABC):
         return tasks_to_execute
 
     async def _execute_tasks(self, tasks: Sequence[Task]) -> None:
-        task_map = {}
-        asyncio_tasks = []
+        task_map: dict[asyncio.Task, Task] = {}
+        asyncio_tasks: list[asyncio.Task] = []
         
         for task in tasks:
             asyncio_task = asyncio.create_task(task.execute())
@@ -104,8 +104,8 @@ class BaseBroker(ABC):
                 task = task_map[completed_asyncio_task]
                 try:
                     result = await completed_asyncio_task
-                    log_info(f"Task '{task}' completed: {result}")
-                except Exception as e:
+                except Exception as exc:
                     log_error(
-                        f"Unexpected error while task {task} execution: {e}"
+                        f"Unexpected error while task {task} execution: {exc}"
                     )
+                log_info(f"Task '{task.task_id}' completed")

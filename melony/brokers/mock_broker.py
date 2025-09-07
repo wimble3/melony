@@ -32,14 +32,21 @@ class MockBroker(BaseBroker, JsonSerObjTaskConverter):
         await asyncio.sleep(EPSILON)
 
     async def _pop_tasks(self) -> Sequence[Task]:
+        if not self._queue:
+            return []
+        
+        pop_coroutines = [self.pop() for _ in range(len(self._queue))]
+        pop_results = await asyncio.gather(*pop_coroutines, return_exceptions=True)
+        
         tasks: list[Task] = []
-        for _ in range(len(self._queue)):
-            task = await self.pop()
-            if not task:
-                raise RuntimeError(f"Pop by time at loop returns None, not Task object")
+        for task in pop_results:
+            if task is None:
+                break
+            elif isinstance(task, BaseException):
+                break
             tasks.append(task)
         return tasks
-            
+
     async def _execute_appropriate_tasks(self, tasks: Sequence[Task]) -> None:
         tasks_to_execute = await self._filter_tasks_by_execution_time(tasks)
         await self._execute_tasks(tasks=tasks_to_execute)

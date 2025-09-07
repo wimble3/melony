@@ -1,4 +1,5 @@
-from json import loads
+import json
+
 from melony.core.brokers import BaseBroker
 from melony.core.task_converters import ITaskConverter
 from melony.core.task_finders import find_task_func
@@ -14,7 +15,7 @@ class JsonTaskConverter(ITaskConverter):
             serialized_task: str,
             broker: BaseBroker
     ) -> Task:
-        task_dict = loads(serialized_task)
+        task_dict = json.loads(serialized_task)
         task_func_path = task_dict["func_path"]
         task_func = find_task_func(task_func_path)
         return Task(

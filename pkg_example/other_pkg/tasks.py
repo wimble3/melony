@@ -7,6 +7,6 @@ broker = MockBroker()
 
 @broker.task
 async def example_task(number: int, string_param: str) -> str:
-    await asyncio.sleep(10)
+    await asyncio.sleep(3)
     result = number * 2
     return f"Processed: {result}, {string_param}"

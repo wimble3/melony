@@ -1,7 +1,8 @@
+import json
+
 from datetime import datetime
 from dataclasses import asdict, dataclass
 from inspect import signature, unwrap
-from json import dumps
 from typing import Callable, Any, TYPE_CHECKING, Sequence, TypeVar, ParamSpec, Awaitable
 from uuid import uuid4
 from classes import typeclass
@@ -24,6 +25,9 @@ class _BaseTask:
     countdown: int
     timestamp: float = datetime.timestamp(datetime.now())
 
+    def get_execution_timestamp(self) -> float:
+        return self.timestamp + self.countdown
+
     def __post_init__(self) -> None:
         self._validate_countdown()
 
@@ -35,9 +39,6 @@ class _BaseTask:
                 f"Countdown cannot be greater than {_MAX_COUNTDOWN_SEC} "
                 f"({_MAX_COUNTDOWN_MIN} minutes)"
             )
-
-    def get_execution_timestamp(self) -> float:
-        return self.timestamp + self.countdown
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -73,7 +74,7 @@ class Task(_BaseTask):
         return asdict(self.as_json_serializable_obj())
 
     def as_json(self) -> str:
-        return dumps(self.as_dict())
+        return json.dumps(self.as_dict())
         
 
 class TaskWrapper(Awaitable):
