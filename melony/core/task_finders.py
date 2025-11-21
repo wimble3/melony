@@ -6,9 +6,9 @@ from typing import Callable
 def find_task_func(func_path: str) -> Callable:
     try:
         return _find_func(func_path)
-    except (ImportError, AttributeError, ValueError) as e:
-        raise ImportError(f"Cannot import function '{func_path}': {e}")
-    # @@@ TODO check that its Melony Task
+    except (ImportError, AttributeError, ValueError) as exc:
+        raise ImportError(f"Cannot import function '{func_path}': {exc}")
+    # TODO: check that its Melony Task
 
 def _find_func(func_path: str) -> Callable:
     module_name, func_name = func_path.rsplit(".", 1)

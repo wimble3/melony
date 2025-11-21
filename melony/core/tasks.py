@@ -1,9 +1,9 @@
 import json
 
 from datetime import datetime
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from inspect import signature, unwrap
-from typing import Callable, Any, TYPE_CHECKING, Sequence, TypeVar, ParamSpec, Awaitable
+from typing import Callable, Any, TYPE_CHECKING, TypeVar, ParamSpec, Awaitable, final
 from uuid import uuid4
 from classes import typeclass
 
@@ -23,14 +23,17 @@ class _BaseTask:
     task_id: str
     kwargs: dict[str, Any]
     countdown: int
-    timestamp: float = datetime.timestamp(datetime.now())
+    timestamp: float = field(default_factory=lambda: datetime.timestamp(datetime.now()))
 
-    def get_execution_timestamp(self) -> float:
-        return self.timestamp + self.countdown
-
+    @final
     def __post_init__(self) -> None:
         self._validate_countdown()
 
+    @final
+    def get_execution_timestamp(self) -> float:
+        return self.timestamp + self.countdown
+
+    @final
     def _validate_countdown(self) -> None:
         if self.countdown < 0:
             raise ValueError("Countdown cannot be negative")
@@ -53,12 +56,12 @@ class Task(_BaseTask):
     func_path: str
     broker: "BaseBroker | None" = None
 
-    async def execute(self) -> ...:  # @@@ typing
+    async def execute(self) -> Any:  # TODO: typing
         unwrapped_func = unwrap(self.func)
         task_result = await unwrapped_func(**self.kwargs)
         return task_result
 
-    async def get_result(self) -> ...:  # @@@ typing
+    async def get_result(self) -> Any:  # TODO: typing
         ...
 
     def as_json_serializable_obj(self) -> TaskJSONSerializable:
@@ -67,7 +70,8 @@ class Task(_BaseTask):
             kwargs=self.kwargs,
             countdown=self.countdown,
             func_name=self.func.__name__,
-            func_path=self.func_path
+            func_path=self.func_path,
+            timestamp=self.timestamp
         )
 
     def as_dict(self) -> dict[str, Any]:
@@ -75,7 +79,7 @@ class Task(_BaseTask):
 
     def as_json(self) -> str:
         return json.dumps(self.as_dict())
-        
+
 
 class TaskWrapper(Awaitable):
     def __init__(
@@ -119,7 +123,7 @@ class TaskWrapper(Awaitable):
 
 
 @typeclass
-async def revoke() -> None:
+async def revoke(instance: str | list[str] | Task) -> None:
     ...
 
 
@@ -128,12 +132,4 @@ async def _revoke_impl(instance: str) -> None:
 
 
 async def _revoke_bulk_impl(instance: list[str]) -> None:
-    ...
-
-
-async def filter_tasks_by_execution_time(tasks: Sequence[Task]) -> None:
-    ...
-
-
-async def execute_tasks(tasks: Sequence[Task]) -> None:
     ...

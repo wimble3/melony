@@ -1,12 +1,13 @@
 import asyncio
+from melony.brokers.redis_broker import RedisBroker
 
-from melony.brokers.mock_broker import MockBroker
 
+broker = RedisBroker("redis://localhost:6379/0")
 
-broker = MockBroker()
 
 @broker.task
 async def example_task(number: int, string_param: str) -> str:
     await asyncio.sleep(3)
+    raise Exception("Help message for exeption")
     result = number * 2
     return f"Processed: {result}, {string_param}"

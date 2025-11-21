@@ -11,9 +11,9 @@ class JsonTaskConverter(ITaskConverter):
         return task.as_json()
 
     def deserialize_task(
-            self,
-            serialized_task: str,
-            broker: BaseBroker
+        self,
+        serialized_task: str,
+        broker: BaseBroker
     ) -> Task:
         task_dict = json.loads(serialized_task)
         task_func_path = task_dict["func_path"]
@@ -27,4 +27,4 @@ class JsonTaskConverter(ITaskConverter):
             func_path=task_func_path,
             broker=broker
         )
-        
+
