@@ -1,20 +1,20 @@
-from dataclasses import asdict
+import json
+
 from melony.core.brokers import BaseBroker
-from melony.core.task_converters import ITaskConverter
 from melony.core.task_finders import find_task_func
-from melony.core.tasks import Task, TaskJSONSerializable
+from melony.core.tasks import Task
 
 
-class JsonSerObjTaskConverter(ITaskConverter):
-    def serialize_task(self, task: Task) -> TaskJSONSerializable:
-        return task.as_json_serializable_obj()
+class JsonTaskConverter:
+    def serialize_task(self, task: Task) -> str:
+        return task.as_json()
 
     def deserialize_task(
-            self,
-            serialized_task: TaskJSONSerializable,
-            broker: BaseBroker
-        ) -> Task:
-        task_dict = asdict(serialized_task)
+        self,
+        serialized_task: str,
+        broker: BaseBroker
+    ) -> Task:
+        task_dict = json.loads(serialized_task)
         task_func_path = task_dict["func_path"]
         task_func = find_task_func(task_func_path)
         return Task(
@@ -26,3 +26,4 @@ class JsonSerObjTaskConverter(ITaskConverter):
             func_path=task_func_path,
             broker=broker
         )
+

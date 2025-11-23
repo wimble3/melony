@@ -4,6 +4,7 @@ from datetime import datetime
 from dataclasses import asdict, dataclass, field
 from inspect import signature, unwrap
 from typing import Callable, Any, TYPE_CHECKING, TypeVar, ParamSpec, Awaitable, final
+from typing_extensions import Final
 from uuid import uuid4
 from classes import typeclass
 
@@ -14,8 +15,8 @@ if TYPE_CHECKING:
 
 _TaskParams = ParamSpec("_TaskParams")
 _TaskResult = TypeVar("_TaskResult")
-_MAX_COUNTDOWN_SEC = 900
-_MAX_COUNTDOWN_MIN = _MAX_COUNTDOWN_SEC / 60
+_MAX_COUNTDOWN_SEC: Final[int] = 900
+_MAX_COUNTDOWN_MIN: Final[float] = _MAX_COUNTDOWN_SEC / 60
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -56,13 +57,10 @@ class Task(_BaseTask):
     func_path: str
     broker: "BaseBroker | None" = None
 
-    async def execute(self) -> Any:  # TODO: typing
+    async def execute(self) -> Any:
         unwrapped_func = unwrap(self.func)
         task_result = await unwrapped_func(**self.kwargs)
         return task_result
-
-    async def get_result(self) -> Any:  # TODO: typing
-        ...
 
     def as_json_serializable_obj(self) -> TaskJSONSerializable:
         return TaskJSONSerializable(
@@ -118,7 +116,7 @@ class TaskWrapper(Awaitable):
             broker=self._broker,
             countdown=countdown
         )
-        await self._broker.push(task)
+        await self._broker.publisher.push(task)
         return task
 
 
