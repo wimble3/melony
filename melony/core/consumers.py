@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import Sequence, final
 from redis.exceptions import ConnectionError
 
-from melony.core.dto import FilteredTasksDTO
+from melony.core.dto import FilteredTasksDTO, WaitTaskResultsDTO
 from melony.core.publishers import IPublisher
 from melony.core.result_backend import IResultBackend
 from melony.core.task_executor import TaskExecutor
@@ -49,7 +49,10 @@ class BaseConsumer(ABC):
         tasks = await self._pop_tasks()
         filtered_tasks = await self._filter_tasks_by_execution_time(tasks)
         await self._push_bulk(tasks=filtered_tasks.tasks_to_push_back)
-        await self._task_executor.execute_tasks(tasks=filtered_tasks.tasks_to_execute)
+        wait_task_results = await self._task_executor.execute_tasks(
+            tasks=filtered_tasks.tasks_to_execute
+        )
+        await self._retry_policy(wait_task_results)
 
     @final
     async def _push_bulk(self, tasks: Sequence[Task]) -> None:
@@ -78,4 +81,14 @@ class BaseConsumer(ABC):
             tasks_to_push_back=tasks_to_push_back
         )
 
-    
+    @final
+    async def _retry_policy(
+        self,
+        wait_tasks_results: WaitTaskResultsDTO
+    ) -> None:
+        tasks_to_push_back: list[Task] = []
+        for task_to_retry in wait_tasks_results.tasks_to_retry:
+            if task_to_retry._meta.retries_left:
+                tasks_to_push_back.append(task_to_retry)
+
+        await self._push_bulk(tasks_to_push_back)

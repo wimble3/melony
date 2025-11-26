@@ -9,9 +9,9 @@ result_backend = RedisResultBackend(connection_str)
 broker = RedisBroker(connection_str, result_backend)
 
 
-@broker.task
+@broker.task(retries=5)
 async def example_task(number: int, string_param: str) -> str:
     await asyncio.sleep(2)
-    # raise Exception("Help message for exeption")
+    raise Exception("Help message for exeption")
     result = number * 2
     return f"Processed: {result}, {string_param}"

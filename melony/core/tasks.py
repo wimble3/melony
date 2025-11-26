@@ -6,7 +6,6 @@ from inspect import signature, unwrap
 from typing import Callable, Any, TYPE_CHECKING, TypeVar, ParamSpec, Awaitable, final
 from typing_extensions import Final
 from uuid import uuid4
-from classes import typeclass
 
 
 if TYPE_CHECKING:
@@ -19,16 +18,26 @@ _MAX_COUNTDOWN_SEC: Final[int] = 900
 _MAX_COUNTDOWN_MIN: Final[float] = _MAX_COUNTDOWN_SEC / 60
 
 
+@dataclass(kw_only=True)
+class _TaskMeta:
+    retries_left: int | None = None
+
+
 @dataclass(frozen=True, kw_only=True)
 class _BaseTask:
     task_id: str
     kwargs: dict[str, Any]
     countdown: int
     timestamp: float = field(default_factory=lambda: datetime.timestamp(datetime.now()))
+    retries: int
+    retry_timeout: int
+
+    _meta: _TaskMeta = field(default_factory=_TaskMeta)
 
     @final
     def __post_init__(self) -> None:
         self._validate_countdown()
+        self._set_retries_left_to_meta()
 
     @final
     def get_execution_timestamp(self) -> float:
@@ -44,6 +53,11 @@ class _BaseTask:
                 f"({_MAX_COUNTDOWN_MIN} minutes)"
             )
 
+    @final
+    def _set_retries_left_to_meta(self) -> None:
+        if not self._meta.retries_left:
+            self._meta.retries_left = self.retries
+
 
 @dataclass(frozen=True, kw_only=True)
 class TaskJSONSerializable(_BaseTask):
@@ -55,7 +69,7 @@ class TaskJSONSerializable(_BaseTask):
 class Task(_BaseTask):
     func: Callable
     func_path: str
-    broker: "BaseBroker | None" = None
+    broker: "BaseBroker"
 
     async def execute(self) -> Any:
         unwrapped_func = unwrap(self.func)
@@ -69,33 +83,41 @@ class Task(_BaseTask):
             countdown=self.countdown,
             func_name=self.func.__name__,
             func_path=self.func_path,
-            timestamp=self.timestamp
+            timestamp=self.timestamp,
+            retries=self.retries,
+            retry_timeout=self.retry_timeout,
+            _meta=self._meta
         )
 
     def as_dict(self) -> dict[str, Any]:
         return asdict(self.as_json_serializable_obj())
 
     def as_json(self) -> str:
-        return json.dumps(self.as_dict())
+        json_str = json.dumps(self.as_dict())
+        return json_str
 
 
 class TaskWrapper(Awaitable):
     def __init__(
-            self,
-            func: Callable[_TaskParams, _TaskResult],
-            broker: "BaseBroker",
-            bound_args: dict[str, Any]
+        self,
+        func: Callable[_TaskParams, _TaskResult],
+        broker: "BaseBroker",
+        bound_args: dict[str, Any],
+        retries: int,
+        retry_timeout: int,
     ) -> None:
         self._func = func
         self._broker = broker
         self._sig = signature(func)
         self._bound_args = bound_args or {}
         self._func_path = f"{func.__module__}.{func.__qualname__}"
+        self._retries = retries
+        self._retry_timeout = retry_timeout
 
     def __call__(
-            self,
-            *args: _TaskParams.args,  # type: ignore
-            **kwargs: _TaskParams.kwargs
+        self,
+        *args: _TaskParams.args,  # type: ignore
+        **kwargs: _TaskParams.kwargs
     ) -> "TaskWrapper":
         bound = self._sig.bind(*args, **kwargs)
         bound.apply_defaults()
@@ -114,20 +136,9 @@ class TaskWrapper(Awaitable):
             func_path=self._func_path,
             kwargs=self._bound_args,
             broker=self._broker,
-            countdown=countdown
+            countdown=countdown,
+            retries=self._retries,
+            retry_timeout=self._retry_timeout
         )
         await self._broker.publisher.push(task)
         return task
-
-
-@typeclass
-async def revoke(instance: str | list[str] | Task) -> None:
-    ...
-
-
-async def _revoke_impl(instance: str) -> None:
-    ...
-
-
-async def _revoke_bulk_impl(instance: list[str]) -> None:
-    ...
