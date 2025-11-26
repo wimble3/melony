@@ -5,6 +5,7 @@ from typing import Any, Sequence, final
 from redis.asyncio import Redis
 
 from melony.core.dto import TaskResultDTO, WaitTaskResultsDTO
+from melony.core.publishers import IPublisher
 from melony.core.result_backend import IResultBackend
 from melony.core.tasks import Task
 from melony.logger import log_error, log_info
@@ -21,7 +22,7 @@ class TaskExecutor:
         self._result_backend = result_backend
 
     @final
-    async def execute_tasks(self, tasks: Sequence[Task]) -> None:
+    async def execute_tasks(self, tasks: Sequence[Task]) -> WaitTaskResultsDTO:
         task_map: dict[asyncio.Task, Task] = {}
         asyncio_tasks: list[asyncio.Task] = []
         
@@ -29,12 +30,14 @@ class TaskExecutor:
             asyncio_task = asyncio.create_task(task.execute())
             task_map[asyncio_task] = task
             asyncio_tasks.append(asyncio_task)
+            if task._meta.retries_left:
+                task._meta.retries_left -= 1
         
         wait_tasks_results = await self._asyncio_wait_tasks(
             pending=asyncio_tasks,
             task_map=task_map
         )
-        await self._retry_policy(wait_tasks_results)
+        return wait_tasks_results
 
     @final
     async def _asyncio_wait_tasks(  # noqa: WPS210
@@ -77,10 +80,3 @@ class TaskExecutor:
             return task_exc
         task_result = asyncio_task.result()
         return task_result
-
-    @final
-    async def _retry_policy(
-        self,
-        wait_tasks_results: WaitTaskResultsDTO
-    ) -> None:
-        ...

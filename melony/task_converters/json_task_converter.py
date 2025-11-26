@@ -1,11 +1,12 @@
 import json
 
 from melony.core.brokers import BaseBroker
+from melony.core.task_converters import ITaskConverter
 from melony.core.task_finders import find_task_func
-from melony.core.tasks import _TaskMeta, Task
+from melony.core.tasks import Task
 
 
-class JsonTaskConverter:
+class JsonTaskConverter(ITaskConverter):
     def serialize_task(self, task: Task) -> str:
         return task.as_json()
 
@@ -21,11 +22,10 @@ class JsonTaskConverter:
             task_id=task_dict["task_id"],
             kwargs=task_dict["kwargs"],
             countdown=task_dict["countdown"],
-            timestamp=task_dict["timestamp"],
+            timestamp=float(task_dict.get("timestamp")),
             func=task_func,
             func_path=task_func_path,
             broker=broker,
-            retries=task_dict["retries"],
-            retry_timeout=task_dict["retry_timeout"],
-            _meta=_TaskMeta(**task_dict["_meta"])
+            retries=int(task_dict.get("retries", 0)),
+            retry_timeout=int(task_dict.get("retry_timeout", 0)),
         )

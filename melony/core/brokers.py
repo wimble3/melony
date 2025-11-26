@@ -23,27 +23,25 @@ class BaseBroker(ABC):
         ...
 
     @final
-    def task(
-        self,
-        func: Callable[_TaskParams, _TaskResult]
-    ) -> Callable[_TaskParams, TaskWrapper]:
-        @wraps(func)
-        def wrapper(
-                *args: _TaskParams.args,
-                **kwargs: _TaskParams.kwargs
-        ) -> TaskWrapper:
-            sig = signature(func)
-            bound = sig.bind(*args, **kwargs)
-            bound.apply_defaults()
+    def task(self, retries: int = 1, retry_timeout: int = 0):
+        def decorator(func: Callable[_TaskParams, _TaskResult]):
+            @wraps(func)
+            def wrapper(*args, **kwargs):
+                sig = signature(func)
+                bound = sig.bind(*args, **kwargs)
+                bound.apply_defaults()
 
-            return TaskWrapper(
-                func=func,
-                broker=self,
-                bound_args=bound.arguments
-            )
+                return TaskWrapper(
+                    func=func,
+                    broker=self,
+                    bound_args=bound.arguments,
+                    retries=retries,
+                    retry_timeout=retry_timeout
+                )
 
-        wrapper.__annotations__ = {
-            **func.__annotations__,
-            "return": TaskWrapper
-        }
-        return wrapper
+            wrapper.__annotations__ = {
+                **func.__annotations__,
+                "return": TaskWrapper
+            }
+            return wrapper
+        return decorator
