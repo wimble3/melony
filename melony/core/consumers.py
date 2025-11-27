@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import Sequence, final
 from redis.exceptions import ConnectionError
 
-from melony.core.dto import FilteredTasksDTO, WaitTaskResultsDTO
+from melony.core.dto import FilteredTasksDTO, TaskExecResultsDTO
 from melony.core.publishers import IPublisher
 from melony.core.result_backend import IResultBackend
 from melony.core.task_executor import TaskExecutor
@@ -84,10 +84,10 @@ class BaseConsumer(ABC):
     @final
     async def _retry_policy(
         self,
-        wait_tasks_results: WaitTaskResultsDTO
+        tasks_exec_results: TaskExecResultsDTO
     ) -> None:
         tasks_to_push_back: list[Task] = []
-        for task_to_retry in wait_tasks_results.tasks_to_retry:
+        for task_to_retry in tasks_exec_results.tasks_to_retry:
             if task_to_retry._meta.retries_left:
                 tasks_to_push_back.append(task_to_retry)
 
