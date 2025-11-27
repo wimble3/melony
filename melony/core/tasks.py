@@ -3,8 +3,16 @@ import json
 from datetime import datetime
 from dataclasses import asdict, dataclass, field
 from inspect import signature, unwrap
-from typing import Callable, Any, TYPE_CHECKING, TypeVar, ParamSpec, Awaitable, final
-from typing_extensions import Final
+from typing import (
+    Callable,
+    Any,
+    TYPE_CHECKING,
+    TypeVar,
+    ParamSpec,
+    Awaitable,
+    final,
+    Final
+)
 from uuid import uuid4
 
 

@@ -5,7 +5,7 @@ from pkg_example.other_pkg.tasks import example_task
 
 
 async def main():
-    await example_task(number=3, string_param="from another").delay(countdown=5)
+    await example_task(number=12, string_param="param").delay(countdown=5)
     # await example_task(number=4, string_param="rlly!").delay(countdown=3)
     # await example_task(number=4, string_param="big delay!").delay(countdown=15)
     # print(f"@@@ {task_result}")

@@ -9,7 +9,7 @@ result_backend = RedisResultBackend(connection_str)
 broker = RedisBroker(connection_str, result_backend)
 
 
-@broker.task(retries=5, retry_timeout=5)
+@broker.task(retries=2, retry_timeout=5)
 async def example_task(number: int, string_param: str) -> str:
     # await asyncio.sleep(2)
     raise Exception("Help message for exeption")
