@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from functools import wraps
 from inspect import signature
-from typing import Callable, ParamSpec, TypeVar, final
+from typing import Callable, ParamSpec, TypeVar, final, overload
 
 from melony.core.consumers import BaseConsumer
 from melony.core.publishers import IPublisher
@@ -22,13 +22,42 @@ class BaseBroker(ABC):
     def consumer(self) -> BaseConsumer:
         ...
 
-    @final
-    def task(self, retries: int = 1, retry_timeout: int = 0):
-        self._validate_params(retries, retry_timeout)
+    @overload
+    def task(
+        self,
+        func: Callable[_TaskParams, _TaskResult]
+    ) -> Callable[_TaskParams, TaskWrapper]:
+        ...
+    
+    @overload
+    def task(
+        self,
+        *, 
+        retries: int = 1,
+        retry_timeout: int = 0
+    ) -> Callable[
+            [Callable[_TaskParams, _TaskResult]],  # type: ignore
+            Callable[_TaskParams, TaskWrapper]
+        ]:
+        ...
 
-        def decorator(func: Callable[_TaskParams, _TaskResult]):
+    @final
+    def task(
+        self,
+        func: Callable[_TaskParams, _TaskResult] | None = None,
+        *,
+        retries: int = 1,
+        retry_timeout: int = 0,
+    ) -> Callable[_TaskParams, TaskWrapper] | Callable[[Callable], Callable]:
+        self._validate_params(retries, retry_timeout)
+        def _decorate(
+            func: Callable[_TaskParams, _TaskResult]
+        ) -> Callable[_TaskParams, TaskWrapper]:
             @wraps(func)
-            def wrapper(*args, **kwargs):
+            def wrapper(
+                *args: _TaskParams.args,
+                **kwargs: _TaskParams.kwargs
+            ) -> TaskWrapper:
                 sig = signature(func)
                 bound = sig.bind(*args, **kwargs)
                 bound.apply_defaults()
@@ -46,11 +75,20 @@ class BaseBroker(ABC):
                 "return": TaskWrapper
             }
             return wrapper
-        return decorator
+
+        if func is None:
+            return _decorate
+        else:
+            return _decorate(func)
 
     @final
     def _validate_params(self, retries: int, retry_timeout: int) -> None:
         if retries <= 0:
-            raise ValueError("Retries must be positive integer (without zero)")
+            raise ValueError(
+                "Parameter 'retries' must be positive integer (without zero)"
+            )
         if retry_timeout < 0:
-            raise ValueError("Retry timeount must be positive interger or zero")
+            raise ValueError(
+                "Parameter 'retry_timeout' must be positive integer or zero"
+            )
+
