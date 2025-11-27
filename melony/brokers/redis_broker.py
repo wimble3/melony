@@ -6,7 +6,6 @@ from melony.core.publishers import IPublisher
 from melony.core.brokers import BaseBroker
 from melony.core.result_backend import IResultBackend
 from melony.publishers.redis_publisher import RedisPublisher
-from melony.core.json_task_converter import JsonTaskConverter
 
 
 class RedisBroker(BaseBroker):
