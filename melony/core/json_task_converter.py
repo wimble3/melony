@@ -21,7 +21,6 @@ class JsonTaskConverter:
             task_id=task_dict["task_id"],
             kwargs=task_dict["kwargs"],
             countdown=task_dict["countdown"],
-            timestamp=task_dict["timestamp"],
             func=task_func,
             func_path=task_func_path,
             broker=broker,

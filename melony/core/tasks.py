@@ -21,6 +21,7 @@ _MAX_COUNTDOWN_MIN: Final[float] = _MAX_COUNTDOWN_SEC / 60
 @dataclass(kw_only=True)
 class _TaskMeta:
     retries_left: int | None = None
+    timestamp: float = field(default_factory=lambda: datetime.timestamp(datetime.now()))
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -28,7 +29,6 @@ class _BaseTask:
     task_id: str
     kwargs: dict[str, Any]
     countdown: int
-    timestamp: float = field(default_factory=lambda: datetime.timestamp(datetime.now()))
     retries: int
     retry_timeout: int
 
@@ -38,6 +38,11 @@ class _BaseTask:
     def __post_init__(self) -> None:
         self._validate_countdown()
         self._set_retries_left_to_meta()
+
+    @final
+    @property
+    def timestamp(self) -> float:
+        return self._meta.timestamp
 
     @final
     def get_execution_timestamp(self) -> float:
@@ -83,7 +88,6 @@ class Task(_BaseTask):
             countdown=self.countdown,
             func_name=self.func.__name__,
             func_path=self.func_path,
-            timestamp=self.timestamp,
             retries=self.retries,
             retry_timeout=self.retry_timeout,
             _meta=self._meta

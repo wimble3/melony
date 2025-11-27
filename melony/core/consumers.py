@@ -89,6 +89,8 @@ class BaseConsumer(ABC):
         tasks_to_push_back: list[Task] = []
         for task_to_retry in tasks_exec_results.tasks_to_retry:
             if task_to_retry._meta.retries_left:
+                if task_to_retry.retry_timeout:
+                    task_to_retry._meta.timestamp += task_to_retry.retry_timeout
                 tasks_to_push_back.append(task_to_retry)
 
         await self._push_bulk(tasks_to_push_back)
