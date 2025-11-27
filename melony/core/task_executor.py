@@ -4,7 +4,7 @@ from collections.abc import Iterable
 from typing import Any, Sequence, final
 from redis.asyncio import Redis
 
-from melony.core.dto import TaskResultDTO, WaitTaskResultsDTO
+from melony.core.dto import TaskResultDTO, TaskExecResultsDTO
 from melony.core.publishers import IPublisher
 from melony.core.result_backend import IResultBackend
 from melony.core.tasks import Task
@@ -22,7 +22,7 @@ class TaskExecutor:
         self._result_backend = result_backend
 
     @final
-    async def execute_tasks(self, tasks: Sequence[Task]) -> WaitTaskResultsDTO:
+    async def execute_tasks(self, tasks: Sequence[Task]) -> TaskExecResultsDTO:
         task_map: dict[asyncio.Task, Task] = {}
         asyncio_tasks: list[asyncio.Task] = []
         
@@ -33,18 +33,18 @@ class TaskExecutor:
             if task._meta.retries_left:
                 task._meta.retries_left -= 1
         
-        wait_tasks_results = await self._asyncio_wait_tasks(
+        tasks_exec_results = await self._asyncio_wait_tasks(
             pending=asyncio_tasks,
             task_map=task_map
         )
-        return wait_tasks_results
+        return tasks_exec_results
 
     @final
     async def _asyncio_wait_tasks(  # noqa: WPS210
         self,
         pending: Iterable[asyncio.Task],
         task_map: dict[asyncio.Task, Task]
-    ) -> WaitTaskResultsDTO:
+    ) -> TaskExecResultsDTO:
         tasks_to_retry: list[Task] = []
         tasks_done: list[TaskResultDTO] = []
         while pending:
@@ -68,7 +68,7 @@ class TaskExecutor:
                 tasks_done.append(TaskResultDTO(task=task, task_result=task_result))
             if self._result_backend:
                 await self._result_backend.save_results(task_results=tasks_done)
-        return WaitTaskResultsDTO(
+        return TaskExecResultsDTO(
             tasks_with_result=tasks_done,
             tasks_to_retry=tasks_to_retry
         )

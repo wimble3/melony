@@ -17,6 +17,6 @@ class TaskResultDTO:
 
 
 @dataclass(frozen=True, kw_only=True)
-class WaitTaskResultsDTO:
+class TaskExecResultsDTO:
     tasks_with_result: Sequence[TaskResultDTO]
     tasks_to_retry: Sequence[Task]
