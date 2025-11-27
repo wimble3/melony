@@ -24,6 +24,8 @@ class BaseBroker(ABC):
 
     @final
     def task(self, retries: int = 1, retry_timeout: int = 0):
+        self._validate_params(retries, retry_timeout)
+
         def decorator(func: Callable[_TaskParams, _TaskResult]):
             @wraps(func)
             def wrapper(*args, **kwargs):
@@ -45,3 +47,10 @@ class BaseBroker(ABC):
             }
             return wrapper
         return decorator
+
+    @final
+    def _validate_params(self, retries: int, retry_timeout: int) -> None:
+        if retries <= 0:
+            raise ValueError("Retries must be positive integer (without zero)")
+        if retry_timeout < 0:
+            raise ValueError("Retry timeount must be positive interger or zero")
