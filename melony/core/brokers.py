@@ -50,7 +50,7 @@ class BaseBroker(ABC):
         retry_timeout: int = 0,
     ) -> Callable[_TaskParams, TaskWrapper] | Callable[[Callable], Callable]:
         self._validate_params(retries, retry_timeout)
-        def _decorate(
+        def _decorate(  # noqa: WPS430
             func: Callable[_TaskParams, _TaskResult]
         ) -> Callable[_TaskParams, TaskWrapper]:
             @wraps(func)

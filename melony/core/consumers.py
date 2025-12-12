@@ -1,4 +1,5 @@
 import asyncio
+import multiprocessing
 
 from abc import ABC, abstractmethod
 from datetime import datetime
@@ -11,6 +12,13 @@ from melony.core.result_backend import IResultBackend
 from melony.core.task_executor import TaskExecutor
 from melony.core.tasks import Task
 from melony.logger import log_error, log_info
+
+
+# TODO: temp function here untuil we have BaseSyncConsumer, BaseAsyncConsumer and 
+# realization, also we have problem with wps on BaseConsumer until this issue will be 
+# resolved
+def _run_consumer_in_process(consumer: "BaseConsumer", consumer_id: int = 0) -> None:
+    asyncio.run(consumer._consumer_loop(consumer_id=consumer_id))
 
 
 class BaseConsumer(ABC):
@@ -28,26 +36,44 @@ class BaseConsumer(ABC):
         self._result_backend = result_backend
 
     @final
-    async def start_consume(self) -> None:
-        # TODO: processes parameter
-        log_info("Start listening...")
-        while True:
-            try:
-                await self._consumer_loop()
-            except ConnectionError as exc:
-                log_error(f"Redis connection error", exc=exc)
-                break
-            except Exception as exc:
-                log_error(f"Unexpected error at consuming loop", exc=exc)
+    async def start_consume(self, processes: int = 1) -> None:
+        if processes < 1:
+            raise ValueError("Param 'processes' must be positive integer (without zero)")
+
+        if processes == 1:
+            await self._consumer_loop()
+            return
+
+        for process_num in range(processes):
+            process = multiprocessing.Process(
+                name=f"melony-process-{process_num}",
+                target=_run_consumer_in_process,
+                args=(self, process_num),
+                daemon=False
+            )
+            process.start()
 
     @abstractmethod
     async def _pop_tasks(self) -> Sequence[Task]:
         ...
 
     @final
-    async def _consumer_loop(self) -> None:
+    async def _consumer_loop(self, consumer_id: int = 1) -> None:
+        log_info("Start listening...", consumer_id=consumer_id)
+        while True:
+            try:
+                await self._consumer_loop_iteration(consumer_id)
+            except ConnectionError as exc:
+                log_error(f"Redis connection error", exc=exc)
+                break
+            except Exception as exc:
+                log_error(f"Unexpected error at consuming loop", exc=exc)
+                break
+
+    @final
+    async def _consumer_loop_iteration(self, consumer_id) -> None:
         tasks = await self._pop_tasks()
-        filtered_tasks = await self._filter_tasks_by_execution_time(tasks)
+        filtered_tasks = await self._filter_tasks_by_execution_time(tasks, consumer_id)
         await self._push_bulk(tasks=filtered_tasks.tasks_to_push_back)
         wait_task_results = await self._task_executor.execute_tasks(
             tasks=filtered_tasks.tasks_to_execute
@@ -62,7 +88,8 @@ class BaseConsumer(ABC):
     @final
     async def _filter_tasks_by_execution_time(
         self,
-        tasks: Sequence[Task]
+        tasks: Sequence[Task],
+        consumer_id
     ) -> FilteredTasksDTO:
         tasks_to_execute: list[Task] = []
         tasks_to_push_back: list[Task] = []
@@ -75,7 +102,7 @@ class BaseConsumer(ABC):
             else:
                 tasks_to_push_back.append(task)
         
-        log_info(f"@@@ {len(tasks_to_execute)=}")
+        log_info(f"@@@ {len(tasks_to_execute)=}", consumer_id=consumer_id)
         return FilteredTasksDTO(
             tasks_to_execute=tasks_to_execute,
             tasks_to_push_back=tasks_to_push_back
