@@ -3,20 +3,20 @@ import asyncio
 from collections.abc import Iterable
 from typing import Any, Sequence, final
 from redis.asyncio import Redis
+from redis import Redis as SyncRedis
 
 from melony.core.dto import TaskResultDTO, TaskExecResultsDTO
-from melony.core.publishers import IPublisher
-from melony.core.result_backend import IResultBackend
+from melony.core.result_backends import IAsyncResultBackend, ISyncResultBackend
 from melony.core.tasks import Task
 from melony.logger import log_error, log_info
 
 
 @final
-class TaskExecutor:
+class AsyncTaskExecutor:
     def __init__(
         self,
         connection: Redis,
-        result_backend: IResultBackend | None = None
+        result_backend: IAsyncResultBackend | None = None
     ) -> None:
         self._connection = connection
         self._result_backend = result_backend
@@ -80,3 +80,48 @@ class TaskExecutor:
             return task_exc
         task_result = asyncio_task.result()
         return task_result
+
+
+@final
+class SyncTaskExecutor:
+    def __init__(
+        self,
+        connection: SyncRedis,
+        result_backend: ISyncResultBackend | None = None
+    ) -> None:
+        self._connection = connection
+        self._result_backend = result_backend
+
+    @final
+    def execute_tasks(self, tasks: Sequence[Task]) -> TaskExecResultsDTO:
+        tasks_to_retry: list[Task] = []
+        tasks_done: list[TaskResultDTO] = []
+        for task in tasks:
+            if task._meta.retries_left:
+                task._meta.retries_left -= 1
+            try:
+                task_result = task.execute()
+            except Exception as exc:
+                task_result = exc
+
+            if isinstance(task_result, BaseException):
+                log_error(
+                    f"Task with id '{task.task_id}' has been executed with error: "
+                    f"{task_result}",
+                    exc=task_result
+                )
+                tasks_to_retry.append(task)
+                continue
+
+            log_info(
+                f"Task with id '{task.task_id}' completed with result {task_result=}"
+            )
+            tasks_done.append(TaskResultDTO(task=task, task_result=task_result))
+
+            if self._result_backend:
+                self._result_backend.save_results(task_results=tasks_done)
+        
+        return TaskExecResultsDTO(
+            tasks_with_result=tasks_done,
+            tasks_to_retry=tasks_to_retry
+        )
