@@ -1,26 +1,27 @@
-from typing import Awaitable, Final, Optional, Sequence, cast, override
+from typing import Awaitable, Final, Optional, Sequence, cast, final, override
 
-from melony.core.json_task_converter import JsonTaskConverter
+from melony.core.json_task_converter import AsyncJsonTaskConverter
 from melony.core.brokers import BaseBroker
 from melony.core.consts import REDIS_QUEUE_NAME
-from melony.core.consumers import BaseConsumer
-from melony.core.publishers import IPublisher
-from melony.core.result_backend import IResultBackend
+from melony.core.consumers import BaseAsyncConsumer
+from melony.core.publishers import IAsyncPublisher
+from melony.core.result_backends import IAsyncResultBackend
 from melony.core.tasks import Task
 
 
-class RedisConsumer(BaseConsumer):
+@final
+class RedisConsumer(BaseAsyncConsumer):
     _brpop_timeout: Final[float] = 0.01
 
     def __init__(
         self,
-        publisher: IPublisher,
+        publisher: IAsyncPublisher,
         broker: BaseBroker,
-        result_backend: IResultBackend | None = None
+        result_backend: IAsyncResultBackend | None = None
     ) -> None:
         super().__init__(publisher, result_backend)
         self._broker = broker
-        self._task_converter = JsonTaskConverter()
+        self._task_converter = AsyncJsonTaskConverter()
 
     @override
     async def _pop_tasks(self) -> Sequence[Task]:

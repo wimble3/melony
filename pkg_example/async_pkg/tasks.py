@@ -1,7 +1,7 @@
 import asyncio
 
-from melony.brokers.redis_broker import RedisBroker
-from melony.result_backends.redis_result_backend import RedisResultBackend
+from melony.io.brokers.redis_broker import RedisBroker
+from melony.io.result_backends.redis_result_backend import RedisResultBackend
 
 
 connection_str = "redis://localhost:6379/0"

@@ -1,16 +1,16 @@
 import asyncio
 import json
 
-from typing import Final, Sequence, override
+from typing import Sequence, final, override
 from redis.asyncio import Redis
 
+from melony.core.consts import REDIS_RESULT_BACKEND_KEY
 from melony.core.dto import TaskResultDTO
-from melony.core.result_backend import IResultBackend
+from melony.core.result_backends import IAsyncResultBackend
 
 
-class RedisResultBackend(IResultBackend):
-    _result_key: Final[str] = "melony_result_backend:"
-
+@final
+class RedisResultBackend(IAsyncResultBackend):
     def __init__(self, connection_str: str) -> None:
         self._connection = Redis.from_url(connection_str)
 
@@ -20,7 +20,7 @@ class RedisResultBackend(IResultBackend):
 
         for task_result_info in task_results:
             task_id = task_result_info.task.task_id
-            redis_key = f"{self._result_key}{task_id}"
+            redis_key = f"{REDIS_RESULT_BACKEND_KEY}{task_id}"
             set_result_coroutines.append(
                 self._connection.set(
                     name=redis_key,
