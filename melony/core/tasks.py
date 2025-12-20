@@ -76,7 +76,7 @@ class _TaskJSONSerializable(_BaseTask):
     func_path: str
 
 @dataclass(frozen=True, kw_only=True)
-class _SerializableTask(_BaseTask):
+class _Task(_BaseTask):
     func: Callable
     func_path: str
     broker: "BaseBroker"
@@ -106,7 +106,7 @@ class _SerializableTask(_BaseTask):
 
 @final
 @dataclass(frozen=True, kw_only=True)
-class AsyncTask(_SerializableTask):
+class AsyncTask(_Task):
     async def execute(self) -> Any:
         unwrapped_func = unwrap(self.func)
         task_result = await unwrapped_func(**self.kwargs)
@@ -114,7 +114,7 @@ class AsyncTask(_SerializableTask):
 
 @final
 @dataclass(frozen=True, kw_only=True)
-class SyncTask(_SerializableTask):
+class SyncTask(_Task):
     def execute(self) -> Any:
         unwrapped_func = unwrap(self.func)
         task_result = unwrapped_func(**self.kwargs)

@@ -21,10 +21,13 @@ class RedisResultBackend(IAsyncResultBackend):
         for task_result_info in task_results:
             task_id = task_result_info.task.task_id
             redis_key = f"{REDIS_RESULT_BACKEND_KEY}{task_id}"
+            save_task_data = {}
+            save_task_data["result"] = task_result_info.task_result
+            save_task_data["task"] = task_result_info.task.as_dict()
             set_result_coroutines.append(
                 self._connection.set(
                     name=redis_key,
-                    value=json.dumps(task_result_info.task_result)
+                    value=json.dumps(save_task_data)
                 )
             )
         await asyncio.gather(*set_result_coroutines)
