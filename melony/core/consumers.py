@@ -8,7 +8,11 @@ from redis.exceptions import ConnectionError
 
 from melony.core.dto import FilteredTasksDTO, TaskExecResultsDTO
 from melony.core.publishers import IAsyncPublisher, ISyncPublisher
-from melony.core.result_backends import IAsyncResultBackend, ISyncResultBackend
+from melony.core.result_backends import (
+    IAsyncResultBackendSaver,
+    IResultBackend,
+    ISyncResultBackendSaver
+)
 from melony.core.task_executor import AsyncTaskExecutor, SyncTaskExecutor
 from melony.core.tasks import Task
 from melony.logger import log_error, log_info
@@ -43,15 +47,19 @@ class BaseAsyncConsumer(ABC, BaseConsumer):  # noqa: WPS214
     def __init__(
         self,
         publisher: IAsyncPublisher,
-        result_backend: IAsyncResultBackend | None = None
+        result_backend: IResultBackend | None = None
     ) -> None:
         self._publisher = publisher
         self._connection = self._publisher.connection
+        self._result_backend = result_backend
+
+        result_backend_saver = result_backend.saver if result_backend else None
+        assert isinstance(result_backend_saver, IAsyncResultBackendSaver)
+        
         self._task_executor = AsyncTaskExecutor(
             connection=self._connection,
-            result_backend=result_backend
+            result_backend_saver=result_backend_saver
         )
-        self._result_backend = result_backend
 
 
     @final
@@ -130,15 +138,19 @@ class BaseSyncConsumer(ABC, BaseConsumer):
     def __init__(
         self,
         publisher: ISyncPublisher,
-        result_backend: ISyncResultBackend | None = None
+        result_backend: IResultBackend | None = None
     ) -> None:
         self._publisher = publisher
         self._connection = self._publisher.connection
+        self._result_backend = result_backend
+
+        result_backend_saver = result_backend.saver if result_backend else None
+        assert isinstance(result_backend_saver, ISyncResultBackendSaver)
+
         self._task_executor = SyncTaskExecutor(
             connection=self._connection,
-            result_backend=result_backend
+            result_backend_saver=result_backend_saver
         )
-        self._result_backend = result_backend
 
     @final
     def start_consume(self, processes: int = 1) -> None:

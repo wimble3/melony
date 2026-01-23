@@ -6,7 +6,7 @@ from redis.asyncio import Redis
 from redis import Redis as SyncRedis
 
 from melony.core.dto import TaskResultDTO, TaskExecResultsDTO
-from melony.core.result_backends import IAsyncResultBackend, ISyncResultBackend
+from melony.core.result_backends import IAsyncResultBackendSaver, IResultBackend, ISyncResultBackendSaver
 from melony.core.tasks import Task
 from melony.logger import log_error, log_info
 
@@ -16,10 +16,10 @@ class AsyncTaskExecutor:
     def __init__(
         self,
         connection: Redis,
-        result_backend: IAsyncResultBackend | None = None
+        result_backend_saver: IAsyncResultBackendSaver | None = None
     ) -> None:
         self._connection = connection
-        self._result_backend = result_backend
+        self._result_backend = result_backend_saver
 
     @final
     async def execute_tasks(self, tasks: Sequence[Task]) -> TaskExecResultsDTO:
@@ -40,7 +40,7 @@ class AsyncTaskExecutor:
         return tasks_exec_results
 
     @final
-    async def _asyncio_wait_tasks(  # noqa: WPS210
+    async def _asyncio_wait_tasks(  # noqa: WPS210, WPS231
         self,
         pending: Iterable[asyncio.Task],
         task_map: dict[asyncio.Task, Task]
@@ -56,7 +56,7 @@ class AsyncTaskExecutor:
                 task_result = self._get_task_result(asyncio_task=completed_asyncio_task)
                 if isinstance(task_result, BaseException):
                     log_error(
-                        f"Task with id '{task.task_id}' has been executed with error: "
+                        f"Task with id {task.task_id} has been executed with error: "
                         f"{task_result}",
                         exc=task_result
                     )
@@ -87,10 +87,10 @@ class SyncTaskExecutor:
     def __init__(
         self,
         connection: SyncRedis,
-        result_backend: ISyncResultBackend | None = None
+        result_backend_saver: ISyncResultBackendSaver | None = None
     ) -> None:
         self._connection = connection
-        self._result_backend = result_backend
+        self._result_backend_saver = result_backend_saver
 
     @final
     def execute_tasks(self, tasks: Sequence[Task]) -> TaskExecResultsDTO:
@@ -118,8 +118,8 @@ class SyncTaskExecutor:
             )
             tasks_done.append(TaskResultDTO(task=task, task_result=task_result))
 
-            if self._result_backend:
-                self._result_backend.save_results(task_results=tasks_done)
+            if self._result_backend_saver:
+                self._result_backend_saver.save_results(task_results=tasks_done)
         
         return TaskExecResultsDTO(
             tasks_with_result=tasks_done,

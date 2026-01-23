@@ -18,8 +18,13 @@ from pkg_example.sync_pkg.tasks import example_task
 
 
 def main():
-    example_task(number=2, string_param="param").delay(5)
-    example_task(number=3, string_param="rlly").delay(6)
+    example_task(number=2, string_param="param").delay(countdown=5)
+    example_task(number=2, string_param="param").delay(countdown=5)
+    example_task(number=2, string_param="param").delay(countdown=5)
+    example_task(number=2, string_param="param").delay(countdown=5)
+    example_task(number=2, string_param="param").delay(countdown=5)
+    example_task(number=2, string_param="param").delay(countdown=5)
+    example_task(number=3, string_param="rlly").delay(countdown=5)
 
 
 if __name__ == "__main__":
