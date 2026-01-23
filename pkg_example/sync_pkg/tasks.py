@@ -1,12 +1,14 @@
 import time
 
-from melony.sync.brokers.redis_broker import RedisBroker
-from melony.sync.result_backends.redis_result_backend import RedisResultBackend
+from redis import Redis
+
+from melony.redis_broker.brokers import RedisBroker
+from melony.redis_broker.result_backends import RedisResultBackend
 
 
-connection_str = "redis://localhost:6379/0"
-result_backend = RedisResultBackend(connection_str)
-broker = RedisBroker(connection_str, result_backend)
+redis_connection = Redis(host="localhost", port=6379, db=0)
+result_backend = RedisResultBackend(redis_connection)
+broker = RedisBroker(redis_connection, result_backend)
 
 
 @broker.task
