@@ -1,7 +1,7 @@
 [project]
 name = "melony"
-version = "0.1.0"
-description = "Add your description here"
+version = "1.0.1"
+description = "multisync task manager for python"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
