@@ -15,6 +15,9 @@ from melony.core.result_backends import (
 )
 
 
+__all__ = ()
+
+
 @final
 class _AsyncRedisResultBackendSaver(IAsyncResultBackendSaver):
     def __init__(self, redis_connection: Redis | SyncRedis) -> None:

@@ -5,6 +5,9 @@ from logging import getLogger
 from typing import Final
 
 
+__all__ = ("log_info", "log_error")
+
+
 _logger = getLogger(__name__)
 _MELONY_LOG_PREFIX: Final[str] = "[Melony]"
 _DEBUG = True  # Toggle this for debugging via print python function  TODO: to env

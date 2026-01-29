@@ -6,6 +6,12 @@ from melony.core.task_finders import find_task_func
 from melony.core.tasks import _TaskMeta, AsyncTask, SyncTask, Task
 
 
+__all__ = (
+    "AsyncJsonTaskConverter",
+    "SyncJsonTaskConverter"
+)
+
+
 class _BaseJsonTaskConverter(ABC):
     @abstractmethod
     def deserialize_task(
