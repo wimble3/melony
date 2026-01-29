@@ -18,6 +18,9 @@ from melony.core.tasks import Task
 from melony.logger import log_error, log_info
 
 
+__all__ = ()
+
+
 class BaseConsumer:
     @final
     def _filter_tasks_by_execution_time(

@@ -6,9 +6,11 @@ from redis.asyncio import Redis
 from redis import Redis as SyncRedis
 
 from melony.core.dto import TaskResultDTO, TaskExecResultsDTO
-from melony.core.result_backends import IAsyncResultBackendSaver, IResultBackend, ISyncResultBackendSaver
+from melony.core.result_backends import IAsyncResultBackendSaver, ISyncResultBackendSaver
 from melony.core.tasks import Task
 from melony.logger import log_error, log_info
+
+__all__ = ()
 
 
 @final

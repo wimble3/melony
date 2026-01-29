@@ -15,6 +15,11 @@ from typing import (
 if TYPE_CHECKING:
     from melony.core.brokers import BaseBroker
 
+__all__ = (
+    "AsyncTask",
+    "SyncTask"
+)
+
 type Task = AsyncTask | SyncTask
 
 
@@ -23,13 +28,13 @@ _MAX_COUNTDOWN_MIN: Final[float] = _MAX_COUNTDOWN_SEC / 60
 
 
 @final
-@dataclass(kw_only=True)
+@dataclass(kw_only=True, slots=True)
 class _TaskMeta:
     retries_left: int | None = None
     timestamp: float = field(default_factory=lambda: datetime.timestamp(datetime.now()))
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(frozen=True, kw_only=True, slots=True)
 class _BaseTask:
     task_id: str
     kwargs: dict[str, Any]
@@ -70,12 +75,12 @@ class _BaseTask:
 
 
 @final
-@dataclass(frozen=True, kw_only=True)
+@dataclass(frozen=True, kw_only=True, slots=True)
 class _TaskJSONSerializable(_BaseTask):
     func_name: str
     func_path: str
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(frozen=True, kw_only=True, slots=True)
 class _Task(_BaseTask):
     func: Callable
     func_path: str
@@ -105,7 +110,7 @@ class _Task(_BaseTask):
 
 
 @final
-@dataclass(frozen=True, kw_only=True)
+@dataclass(frozen=True, kw_only=True, slots=True)
 class AsyncTask(_Task):
     async def execute(self) -> Any:
         unwrapped_func = unwrap(self.func)
@@ -113,7 +118,7 @@ class AsyncTask(_Task):
         return task_result
 
 @final
-@dataclass(frozen=True, kw_only=True)
+@dataclass(frozen=True, kw_only=True, slots=True)
 class SyncTask(_Task):
     def execute(self) -> Any:
         unwrapped_func = unwrap(self.func)

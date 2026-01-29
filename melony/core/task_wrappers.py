@@ -8,6 +8,8 @@ from melony.core.tasks import AsyncTask, SyncTask, Task
 if TYPE_CHECKING:
     from melony.core.brokers import BaseBroker
 
+__all__ = ()
+
 
 type TaskWrapper = AsyncTaskWrapper | SyncTaskWrapper
 

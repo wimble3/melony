@@ -5,7 +5,9 @@ from redis import Redis as SyncRedis
 from melony.core.consts import REDIS_QUEUE_NAME
 from melony.core.publishers import IAsyncPublisher, ISyncPublisher
 from melony.core.tasks import Task
-from melony.core.json_task_converter import AsyncJsonTaskConverter, SyncJsonTaskConverter
+from melony.core.task_converters import AsyncJsonTaskConverter, SyncJsonTaskConverter
+
+__all__ = ()
 
 
 @final

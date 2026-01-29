@@ -3,6 +3,7 @@ from typing import Sequence
 
 from melony.core.dto import TaskResultDTO
 
+__all__ = ()
 
 type ResultBackendSaver = IAsyncResultBackendSaver | ISyncResultBackendSaver
 
