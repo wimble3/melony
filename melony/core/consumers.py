@@ -57,7 +57,8 @@ class BaseAsyncConsumer(ABC, BaseConsumer):  # noqa: WPS214
         self._result_backend = result_backend
 
         result_backend_saver = result_backend.saver if result_backend else None
-        assert isinstance(result_backend_saver, IAsyncResultBackendSaver)
+        if result_backend_saver:
+            assert isinstance(result_backend_saver, IAsyncResultBackendSaver)
         
         self._task_executor = AsyncTaskExecutor(
             connection=self._connection,
@@ -148,7 +149,8 @@ class BaseSyncConsumer(ABC, BaseConsumer):
         self._result_backend = result_backend
 
         result_backend_saver = result_backend.saver if result_backend else None
-        assert isinstance(result_backend_saver, ISyncResultBackendSaver)
+        if result_backend_saver:
+            assert isinstance(result_backend_saver, ISyncResultBackendSaver)
 
         self._task_executor = SyncTaskExecutor(
             connection=self._connection,
