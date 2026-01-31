@@ -2,7 +2,6 @@ from typing import Awaitable, cast, final, override
 from redis.asyncio import Redis
 from redis import Redis as SyncRedis
 
-from melony.core.consts import REDIS_QUEUE_NAME
 from melony.core.publishers import IAsyncPublisher, ISyncPublisher
 from melony.core.tasks import Task
 from melony.core.task_converters import AsyncJsonTaskConverter, SyncJsonTaskConverter
@@ -25,7 +24,7 @@ class AsyncRedisPublisher(IAsyncPublisher):
     async def push(self, task: Task) -> None:
         await cast(
             Awaitable[int], self._connection.lpush(
-                REDIS_QUEUE_NAME,
+                task.queue,
                 self._task_converter.serialize_task(task)
             )
         )
@@ -44,9 +43,7 @@ class SyncRedisPublisher(ISyncPublisher):
 
     @override
     def push(self, task: Task) -> None:
-        cast(
-            int, self._connection.lpush(
-                REDIS_QUEUE_NAME,
-                self._task_converter.serialize_task(task)
-            )
+        self._connection.lpush(
+            task.queue,
+            self._task_converter.serialize_task(task)
         )

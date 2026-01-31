@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import Sequence, final
 from redis.exceptions import ConnectionError
 
+from melony.core.consts import DEFAULT_QUEUE, QUEUE_PREFIX
 from melony.core.dto import FilteredTasksDTO, TaskExecResultsDTO
 from melony.core.publishers import IAsyncPublisher, ISyncPublisher
 from melony.core.result_backends import (
@@ -39,7 +40,8 @@ class BaseConsumer:
             else:
                 tasks_to_push_back.append(task)
         
-        log_info(f"@@@ {len(tasks_to_execute)=}", consumer_id=consumer_id)
+        if tasks_to_execute:
+            log_info(f"Executing tasks: {tasks_to_execute}", consumer_id=consumer_id)
         return FilteredTasksDTO(
             tasks_to_execute=tasks_to_execute,
             tasks_to_push_back=tasks_to_push_back
@@ -67,33 +69,38 @@ class BaseAsyncConsumer(ABC, BaseConsumer):  # noqa: WPS214
 
 
     @final
-    async def start_consume(self, processes: int = 1) -> None:
+    async def start_consume(
+        self,
+        queue: str = DEFAULT_QUEUE,
+        processes: int = 1
+    ) -> None:
+        queue = f"{QUEUE_PREFIX}{queue}"
         if processes < 1:
             raise ValueError("Param 'processes' must be positive integer (without zero)")
 
         if processes == 1:
-            await self._consumer_loop()
+            await self._consumer_loop(queue=queue, consumer_id=0)
             return
 
         for process_num in range(processes):
             process = multiprocessing.Process(
                 name=f"melony-process-{process_num}",
                 target=self._run_consumer_in_process,
-                args=(process_num,),
+                args=(queue, process_num),
                 daemon=False
             )
             process.start()
 
     @abstractmethod
-    async def _pop_tasks(self) -> Sequence[Task]:
+    async def _pop_tasks(self, queue: str) -> Sequence[Task]:
         ...
 
     @final
-    async def _consumer_loop(self, consumer_id: int = 1) -> None:
-        log_info("Start listening...", consumer_id=consumer_id)
+    async def _consumer_loop(self, queue: str, consumer_id: int = 1) -> None:
+        log_info(f"Start listening queue {queue}", consumer_id=consumer_id)
         while True:
             try:
-                await self._consumer_loop_iteration(consumer_id)
+                await self._consumer_loop_iteration(queue, consumer_id)
             except ConnectionError as exc:
                 log_error(f"Redis connection error", exc=exc)
                 break
@@ -102,12 +109,13 @@ class BaseAsyncConsumer(ABC, BaseConsumer):  # noqa: WPS214
                 break
 
     @final
-    async def _consumer_loop_iteration(self, consumer_id) -> None:
-        tasks = await self._pop_tasks()
+    async def _consumer_loop_iteration(self, queue: str, consumer_id: int) -> None:
+        tasks = await self._pop_tasks(queue=queue)
         filtered_tasks = self._filter_tasks_by_execution_time(tasks, consumer_id)
         await self._push_bulk(tasks=filtered_tasks.tasks_to_push_back)
         wait_task_results = await self._task_executor.execute_tasks(
-            tasks=filtered_tasks.tasks_to_execute
+            tasks=filtered_tasks.tasks_to_execute,
+            consumer_id=consumer_id
         )
         await self._retry_policy(wait_task_results)
 
@@ -133,9 +141,10 @@ class BaseAsyncConsumer(ABC, BaseConsumer):  # noqa: WPS214
     @final
     def _run_consumer_in_process(
         self,
+        queue: str,
         consumer_id: int = 0
     ) -> None:
-        asyncio.run(self._consumer_loop(consumer_id=consumer_id))
+        asyncio.run(self._consumer_loop(queue=queue, consumer_id=consumer_id))
 
 
 class BaseSyncConsumer(ABC, BaseConsumer):
@@ -158,33 +167,34 @@ class BaseSyncConsumer(ABC, BaseConsumer):
         )
 
     @final
-    def start_consume(self, processes: int = 1) -> None:
+    def start_consume(self, queue: str = DEFAULT_QUEUE, processes: int = 1) -> None:
+        queue = f"{QUEUE_PREFIX}{queue}"
         if processes < 1:
             raise ValueError("Param 'processes' must be positive integer (without zero)")
 
         if processes == 1:
-            self._consumer_loop()
+            self._consumer_loop(queue=queue, consumer_id=0)
             return
 
         for process_num in range(processes):
             process = multiprocessing.Process(
                 name=f"melony-process-{process_num}",
                 target=self._consumer_loop,
-                args=(process_num,),
+                args=(queue, process_num),
                 daemon=False
             )
             process.start()
 
     @abstractmethod
-    def _pop_tasks(self) -> Sequence[Task]:
+    def _pop_tasks(self, queue: str) -> Sequence[Task]:
         ...
 
     @final
-    def _consumer_loop(self, consumer_id: int = 1) -> None:
-        log_info("Start listening...", consumer_id=consumer_id)
+    def _consumer_loop(self, queue: str, consumer_id: int = 1) -> None:
+        log_info(f"Start listening queue {queue}", consumer_id=consumer_id)
         while True:
             try:
-                self._consumer_loop_iteration(consumer_id)
+                self._consumer_loop_iteration(queue, consumer_id)
             except ConnectionError as exc:
                 log_error(f"Redis connection error", exc=exc)
                 break
@@ -193,12 +203,13 @@ class BaseSyncConsumer(ABC, BaseConsumer):
                 break
 
     @final
-    def _consumer_loop_iteration(self, consumer_id) -> None:
-        tasks = self._pop_tasks()
+    def _consumer_loop_iteration(self, queue: str, consumer_id: int) -> None:
+        tasks = self._pop_tasks(queue)
         filtered_tasks = self._filter_tasks_by_execution_time(tasks, consumer_id)
         self._push_bulk(tasks=filtered_tasks.tasks_to_push_back)
         wait_task_results = self._task_executor.execute_tasks(
-            tasks=filtered_tasks.tasks_to_execute
+            tasks=filtered_tasks.tasks_to_execute,
+            consumer_id=consumer_id
         )
         self._retry_policy(wait_task_results)
 

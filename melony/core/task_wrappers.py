@@ -3,7 +3,9 @@ from inspect import signature
 from typing import TYPE_CHECKING, Any, ParamSpec, TypeVar, final
 from uuid import uuid4
 
+from melony.core.consts import QUEUE_PREFIX
 from melony.core.tasks import AsyncTask, SyncTask, Task
+from melony.logger import log_info
 
 if TYPE_CHECKING:
     from melony.core.brokers import BaseBroker
@@ -26,6 +28,7 @@ class _BaseTaskWrapper(Awaitable):
         bound_args: dict[str, Any],
         retries: int,
         retry_timeout: int,
+        queue: str
     ) -> None:
         self._func = func
         self._broker = broker
@@ -34,6 +37,7 @@ class _BaseTaskWrapper(Awaitable):
         self._func_path = f"{func.__module__}.{func.__qualname__}"
         self._retries = retries
         self._retry_timeout = retry_timeout
+        self._queue = f"{QUEUE_PREFIX}{queue}"
 
     @final
     def __call__(
@@ -65,9 +69,11 @@ class AsyncTaskWrapper(_BaseTaskWrapper):
             broker=self._broker,
             countdown=countdown,
             retries=self._retries,
-            retry_timeout=self._retry_timeout
+            retry_timeout=self._retry_timeout,
+            queue=self._queue
         )
         await self._broker.publisher.push(task)
+        log_info(f"Pushed task {task} to queue {task.queue}")
         return task
 
 @final
@@ -83,7 +89,9 @@ class SyncTaskWrapper(_BaseTaskWrapper):
             broker=self._broker,
             countdown=countdown,
             retries=self._retries,
-            retry_timeout=self._retry_timeout
+            retry_timeout=self._retry_timeout,
+            queue=self._queue
         )
         self._broker.publisher.push(task)
+        log_info(f"Pushed task {task} to queue {task.queue}")
         return task
