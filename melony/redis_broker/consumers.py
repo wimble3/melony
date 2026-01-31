@@ -2,7 +2,6 @@ from typing import Awaitable, Final, Optional, Sequence, cast, final, override
 
 from melony.core.task_converters import AsyncJsonTaskConverter, SyncJsonTaskConverter
 from melony.core.brokers import BaseBroker
-from melony.core.consts import REDIS_QUEUE_NAME
 from melony.core.consumers import BaseAsyncConsumer, BaseSyncConsumer
 from melony.core.publishers import IAsyncPublisher, ISyncPublisher
 from melony.core.result_backends import IResultBackend
@@ -28,11 +27,11 @@ class AsyncRedisConsumer(BaseAsyncConsumer):
         self._task_converter = AsyncJsonTaskConverter()
 
     @override
-    async def _pop_tasks(self) -> Sequence[Task]:
+    async def _pop_tasks(self, queue: str) -> Sequence[Task]:
         tasks: list[Task] = []
         redis_task = await cast(
             Awaitable[Sequence[bytes]],
-            self._connection.brpop(keys=[REDIS_QUEUE_NAME])
+            self._connection.brpop(keys=[queue])
         )
         tasks.append(self._deserialize_to_task_from_redis(redis_task))
         
@@ -40,7 +39,7 @@ class AsyncRedisConsumer(BaseAsyncConsumer):
             redis_task = await cast(
                 Awaitable[Optional[Sequence[bytes]]],
                 self._connection.brpop(
-                    keys=[REDIS_QUEUE_NAME],
+                    keys=[queue],
                     timeout=self._brpop_timeout
                 )
             )
@@ -74,11 +73,11 @@ class SyncRedisConsumer(BaseSyncConsumer):
         self._task_converter = SyncJsonTaskConverter()
 
     @override
-    def _pop_tasks(self) -> Sequence[Task]:
+    def _pop_tasks(self, queue: str) -> Sequence[Task]:
         tasks: list[Task] = []
         redis_task = cast(
             Sequence[bytes],
-            self._connection.brpop(keys=[REDIS_QUEUE_NAME])
+            self._connection.brpop(keys=[queue])
         )
         tasks.append(self._deserialize_to_task_from_redis(redis_task))
         
@@ -86,7 +85,7 @@ class SyncRedisConsumer(BaseSyncConsumer):
             redis_task = cast(
                 Optional[Sequence[bytes]],
                 self._connection.brpop(
-                    keys=[REDIS_QUEUE_NAME],
+                    keys=[queue],
                     timeout=self._brpop_timeout
                 )
             )

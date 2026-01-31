@@ -41,6 +41,7 @@ class _BaseTask:
     countdown: int
     retries: int
     retry_timeout: int
+    queue: str
 
     _meta: _TaskMeta = field(default_factory=_TaskMeta)
 
@@ -96,7 +97,8 @@ class _Task(_BaseTask):
             func_path=self.func_path,
             retries=self.retries,
             retry_timeout=self.retry_timeout,
-            _meta=self._meta
+            queue=self.queue,
+            _meta=self._meta,
         )
 
     @final

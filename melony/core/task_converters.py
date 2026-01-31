@@ -43,6 +43,7 @@ class AsyncJsonTaskConverter(_BaseJsonTaskConverter):
             broker=broker,
             retries=task_dict["retries"],
             retry_timeout=task_dict["retry_timeout"],
+            queue=task_dict["queue"],
             _meta=_TaskMeta(**task_dict["_meta"])
         )
 
@@ -65,5 +66,6 @@ class SyncJsonTaskConverter(_BaseJsonTaskConverter):
             broker=broker,
             retries=task_dict["retries"],
             retry_timeout=task_dict["retry_timeout"],
+            queue=task_dict["queue"],
             _meta=_TaskMeta(**task_dict["_meta"])
         )
