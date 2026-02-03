@@ -167,7 +167,7 @@ Attention: for this moment you are able to delaying tasks only for 15 minutes ma
 
 ### Task execution normally
 
-If your function is decorated by `@broker.task` decorator, you still are able to execute this task usually by special method `.execute()` intead `.delay()`. This mehod has no arguments and needed for immidialy execuiton your function as common python function.
+If your function is decorated by `@broker.task` decorator, you still are able to execute this task usually by special method `.execute()` instead `.delay()`. This mehod has no arguments and needed for immidiatly execuiton your function as common python function.
 
 ```python
 # async
