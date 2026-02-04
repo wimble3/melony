@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Sequence
+from typing import Iterable
 
 from melony.core.dto import TaskResultDTO
 
@@ -10,12 +10,12 @@ type ResultBackendSaver = IAsyncResultBackendSaver | ISyncResultBackendSaver
 
 class IAsyncResultBackendSaver(ABC):
     @abstractmethod
-    async def save_results(self, task_results: Sequence[TaskResultDTO]) -> None:
+    async def save_results(self, task_results: Iterable[TaskResultDTO]) -> None:
         ...
 
 class ISyncResultBackendSaver(ABC):
     @abstractmethod
-    def save_results(self, task_results: Sequence[TaskResultDTO]) -> None:
+    def save_results(self, task_results: Iterable[TaskResultDTO]) -> None:
         ...
 
 class IResultBackend(ABC):

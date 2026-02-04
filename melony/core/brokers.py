@@ -80,7 +80,7 @@ class BaseBroker(ABC):
 
         Task execution example:
 
-            >>> example_task(string_param='execute now').execute()
+            >>> await example_task(string_param='execute now').execute()
         """
         self._validate_params(retries, retry_timeout)
         def _decorate(  # noqa: WPS430
@@ -96,6 +96,10 @@ class BaseBroker(ABC):
                 bound.apply_defaults()
 
                 if asyncio.iscoroutinefunction(func):
+                    wrapper.__annotations__ = {
+                        **func.__annotations__,
+                        "return": AsyncTaskWrapper
+                    }
                     return AsyncTaskWrapper(
                         func=func,
                         broker=self,
@@ -105,6 +109,10 @@ class BaseBroker(ABC):
                         queue=queue
                     )
                 else:
+                    wrapper.__annotations__ = {
+                        **func.__annotations__,
+                        "return": SyncTaskWrapper
+                    }
                     return SyncTaskWrapper(
                         func=func,
                         broker=self,
@@ -114,10 +122,7 @@ class BaseBroker(ABC):
                         queue=queue
                     )
 
-            wrapper.__annotations__ = {
-                **func.__annotations__,
-                "return": AsyncTaskWrapper
-            }
+
             return wrapper
 
         if func is None:

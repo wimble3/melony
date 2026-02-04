@@ -58,7 +58,7 @@ class _BaseTaskWrapper(Awaitable):
 
 @final
 class AsyncTaskWrapper(_BaseTaskWrapper):
-    async def delay(self, countdown: int = 0) -> Task:
+    async def delay(self, countdown: int = 0) -> AsyncTask:
         from melony.core.publishers import IAsyncPublisher
         assert isinstance(self._broker.publisher, IAsyncPublisher)
         task = AsyncTask(
@@ -70,15 +70,17 @@ class AsyncTaskWrapper(_BaseTaskWrapper):
             countdown=countdown,
             retries=self._retries,
             retry_timeout=self._retry_timeout,
-            queue=self._queue
+            queue=self._queue,
+            is_coro=True
         )
         await self._broker.publisher.push(task)
         log_info(f"Pushed task {task} to queue {task.queue}")
         return task
 
+
 @final
 class SyncTaskWrapper(_BaseTaskWrapper):
-    def delay(self, countdown: int = 0) -> Task:
+    def delay(self, countdown: int = 0) -> Awaitable[SyncTask]:  # TODO: need to fix typing here
         from melony.core.publishers import ISyncPublisher
         assert isinstance(self._broker.publisher, ISyncPublisher)
         task = SyncTask(
@@ -90,8 +92,9 @@ class SyncTaskWrapper(_BaseTaskWrapper):
             countdown=countdown,
             retries=self._retries,
             retry_timeout=self._retry_timeout,
-            queue=self._queue
+            queue=self._queue,
+            is_coro=False
         )
         self._broker.publisher.push(task)
         log_info(f"Pushed task {task} to queue {task.queue}")
-        return task
+        return task  # type: ignore

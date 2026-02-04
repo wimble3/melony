@@ -1,7 +1,6 @@
 import asyncio
 
-from collections.abc import Iterable
-from typing import Any, Sequence, final
+from typing import Any, final, Iterable
 from redis.asyncio import Redis
 from redis import Redis as SyncRedis
 
@@ -26,7 +25,7 @@ class AsyncTaskExecutor:
     @final
     async def execute_tasks(
         self,
-        tasks: Sequence[Task],
+        tasks: Iterable[Task],
         consumer_id: int
     ) -> TaskExecResultsDTO:
         task_map: dict[asyncio.Task, Task] = {}
@@ -106,7 +105,7 @@ class SyncTaskExecutor:
     @final
     def execute_tasks(
         self,
-        tasks: Sequence[Task], 
+        tasks: Iterable[Task], 
         consumer_id: int
     ) -> TaskExecResultsDTO:
         tasks_to_retry: list[Task] = []

@@ -4,7 +4,7 @@ from redis import Redis as SyncRedis
 
 from melony.core.publishers import IAsyncPublisher, ISyncPublisher
 from melony.core.tasks import Task
-from melony.core.task_converters import AsyncJsonTaskConverter, SyncJsonTaskConverter
+from melony.core.task_converters import TaskConverter
 
 __all__ = ()
 
@@ -13,7 +13,7 @@ __all__ = ()
 class AsyncRedisPublisher(IAsyncPublisher):
     def __init__(self, connection: Redis) -> None:
         self._connection = connection
-        self._task_converter = AsyncJsonTaskConverter()
+        self._task_converter = TaskConverter()
 
     @property
     @override
@@ -34,7 +34,7 @@ class AsyncRedisPublisher(IAsyncPublisher):
 class SyncRedisPublisher(ISyncPublisher):
     def __init__(self, connection: SyncRedis) -> None:
         self._connection = connection
-        self._task_converter = SyncJsonTaskConverter()
+        self._task_converter = TaskConverter()
 
     @property
     @override
