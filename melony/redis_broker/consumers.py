@@ -1,6 +1,6 @@
 from typing import Awaitable, Final, Optional, Sequence, cast, final, override
 
-from melony.core.task_converters import AsyncJsonTaskConverter, SyncJsonTaskConverter
+from melony.core.task_converters import TaskConverter
 from melony.core.brokers import BaseBroker
 from melony.core.consumers import BaseAsyncConsumer, BaseSyncConsumer
 from melony.core.publishers import IAsyncPublisher, ISyncPublisher
@@ -24,7 +24,7 @@ class AsyncRedisConsumer(BaseAsyncConsumer):
     ) -> None:
         super().__init__(publisher, result_backend)
         self._broker = broker
-        self._task_converter = AsyncJsonTaskConverter()
+        self._task_converter = TaskConverter()
 
     @override
     async def _pop_tasks(self, queue: str) -> Sequence[Task]:
@@ -70,7 +70,7 @@ class SyncRedisConsumer(BaseSyncConsumer):
     ) -> None:
         super().__init__(publisher, result_backend)
         self._broker = broker
-        self._task_converter = SyncJsonTaskConverter()
+        self._task_converter = TaskConverter()
 
     @override
     def _pop_tasks(self, queue: str) -> Sequence[Task]:

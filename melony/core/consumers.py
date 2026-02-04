@@ -3,7 +3,7 @@ import multiprocessing
 
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Sequence, final
+from typing import Awaitable, Iterable, final
 from redis.exceptions import ConnectionError
 
 from melony.core.consts import DEFAULT_QUEUE, QUEUE_PREFIX
@@ -26,7 +26,7 @@ class BaseConsumer:
     @final
     def _filter_tasks_by_execution_time(
         self,
-        tasks: Sequence[Task],
+        tasks: Iterable[Task],
         consumer_id
     ) -> FilteredTasksDTO:
         tasks_to_execute: list[Task] = []
@@ -67,7 +67,6 @@ class BaseAsyncConsumer(ABC, BaseConsumer):  # noqa: WPS214
             result_backend_saver=result_backend_saver
         )
 
-
     @final
     async def start_consume(
         self,
@@ -75,6 +74,7 @@ class BaseAsyncConsumer(ABC, BaseConsumer):  # noqa: WPS214
         processes: int = 1
     ) -> None:
         queue = f"{QUEUE_PREFIX}{queue}"
+
         if processes < 1:
             raise ValueError("Param 'processes' must be positive integer (without zero)")
 
@@ -92,8 +92,8 @@ class BaseAsyncConsumer(ABC, BaseConsumer):  # noqa: WPS214
             process.start()
 
     @abstractmethod
-    async def _pop_tasks(self, queue: str) -> Sequence[Task]:
-        ...
+    async def _pop_tasks(self, queue: str) -> Iterable[Task]:
+        """Get all tasks from message broker."""
 
     @final
     async def _consumer_loop(self, queue: str, consumer_id: int = 1) -> None:
@@ -120,7 +120,7 @@ class BaseAsyncConsumer(ABC, BaseConsumer):  # noqa: WPS214
         await self._retry_policy(wait_task_results)
 
     @final
-    async def _push_bulk(self, tasks: Sequence[Task]) -> None:
+    async def _push_bulk(self, tasks: Iterable[Task]) -> None:
         push_coroutines = [self._publisher.push(task) for task in tasks]
         await asyncio.gather(*[coro for coro in push_coroutines if coro is not None])
 
@@ -166,15 +166,17 @@ class BaseSyncConsumer(ABC, BaseConsumer):
             result_backend_saver=result_backend_saver
         )
 
+    # TODO: fix that typing
     @final
-    def start_consume(self, queue: str = DEFAULT_QUEUE, processes: int = 1) -> None:
+    def start_consume(self, queue: str = DEFAULT_QUEUE, processes: int = 1) -> Awaitable:  # type: ignore
         queue = f"{QUEUE_PREFIX}{queue}"
+
         if processes < 1:
             raise ValueError("Param 'processes' must be positive integer (without zero)")
 
         if processes == 1:
             self._consumer_loop(queue=queue, consumer_id=0)
-            return
+            return  # type: ignore
 
         for process_num in range(processes):
             process = multiprocessing.Process(
@@ -186,8 +188,8 @@ class BaseSyncConsumer(ABC, BaseConsumer):
             process.start()
 
     @abstractmethod
-    def _pop_tasks(self, queue: str) -> Sequence[Task]:
-        ...
+    def _pop_tasks(self, queue: str) -> Iterable[Task]:
+        """Get all tasks from message broker."""
 
     @final
     def _consumer_loop(self, queue: str, consumer_id: int = 1) -> None:
@@ -214,7 +216,7 @@ class BaseSyncConsumer(ABC, BaseConsumer):
         self._retry_policy(wait_task_results)
 
     @final
-    def _push_bulk(self, tasks: Sequence[Task]) -> None:
+    def _push_bulk(self, tasks: Iterable[Task]) -> None:
         for task in tasks:
             self._publisher.push(task)
 

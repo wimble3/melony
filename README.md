@@ -11,12 +11,17 @@
 - [x] Simple for users, simple for developers
 - [x] Fully checked with `we-make-python-styleguide`
 - [x] Fully typed for users
+- [x] Scaled by processes
+- [ ] Scaled automatically
+- [x] Retry policy (cascade or simmilar soon)
 - [ ] Revocable tasks (pipelines)
-- [ ] Powerful UI with analytics and full task control
+- [ ] Cron tasks
+- [ ] Powerful UI with analytics, full task control and alerts
 - [ ] 100% test coverage
 - [x] Great docs
 - [x] No AI
-- [ ] To be continue
+
+To be continue
 
 ## Quickstart
 
@@ -53,7 +58,8 @@ broker.consumer.start_consume(processes=2)
 - [x] Redis
 - [ ] RabbitMQ
 - [ ] Kafka
-- [ ] To be continue
+
+To be continue
 
 
 ## Installation
@@ -163,7 +169,7 @@ await example_task(string_param='I am async task with 30 sec countdown').delay(c
 example_task(string_param='I am sync task with 15 sec coundown').delay(countdown=15)
 ```
 
-Attention: for this moment you are able to delaying tasks only for 15 minutes maximum. Later it will be 24 hours (in dev already). Also you will have opportunity to delay your tasks more then 24 hours by postgres/rabbitmq/kafka broker for long life tasks.
+Attention: for this moment you are able to delaying tasks only for 24 hours maximum. You will have opportunity to delay your tasks more then 24 hours by postgres/rabbitmq/kafka broker for long life tasks. Now you should use postgres, for example, to save your task list in Celery =(. So, i'm working on it.
 
 ### Task execution normally
 
@@ -201,16 +207,11 @@ broker.consumer.start_consume(queue='main')
 broker.consumer.start_consume(queue='notifications')
 ```
 
-
-### UI
-
-IN DEV
-
-
-### Revocable tasks
-
-IN DEV
-
 ### For developers
 
 WRITING...
+
+
+### Contributing
+
+See `CONTRIBUTING.md`
