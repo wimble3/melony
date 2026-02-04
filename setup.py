@@ -8,7 +8,7 @@ def readme():
 
 setup(
   name="melony",
-  version="1.0.1",
+  version="1.1.0",
   author="wimble3",
   author_email="wimble@internet.ru",
   description='Multisync task manager for python',
