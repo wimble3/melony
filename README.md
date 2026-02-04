@@ -11,12 +11,17 @@
 - [x] Simple for users, simple for developers
 - [x] Fully checked with `we-make-python-styleguide`
 - [x] Fully typed for users
+- [x] Scaled by processes
+- [ ] Scaled automatically
+- [x] Retry policy (cascade or simmilar soon)
 - [ ] Revocable tasks (pipelines)
-- [ ] Powerful UI with analytics and full task control
+- [ ] Cron tasks
+- [ ] Powerful UI with analytics, full task control and alerts
 - [ ] 100% test coverage
 - [x] Great docs
 - [x] No AI
-- [ ] To be continue
+
+To be continue
 
 ## Quickstart
 
@@ -28,7 +33,7 @@ from redis import Redis
 
 broker = RedisBroker(redis_connection=Redis(host='localhost', port=6379))
 
-@broker.task(retries=2, retry_timeout=30)
+@broker.task(queue='notifications', retries=2, retry_timeout=30)
 def example_task(string_param: str) -> str:
     time.sleep(5)
     return string_param.upper()
@@ -53,7 +58,8 @@ broker.consumer.start_consume(processes=2)
 - [x] Redis
 - [ ] RabbitMQ
 - [ ] Kafka
-- [ ] To be continue
+
+To be continue
 
 
 ## Installation
@@ -112,7 +118,7 @@ broker = RedisBroker(redis_connection=redis_connection)
 
 ### Task declaration
 
-After your broker initilization, you are able to register task for next delaying and execution using special decorator (broker method) `.task()`, which can recieved 2 arguments: `retries` (default=1) and `retry_timeout` (default=0). Your task function must be async if you're using io message broker client and sync if it's not
+After your broker initilization, you are able to register task for next delaying and execution using special decorator (broker method) `.task()`, which can recieved 3 arguments: `queue` (string 'default' by default), `retries` (default=1) and `retry_timeout` (default=0). Your task function must be async if you're using io message broker client and sync if it's not.
 
 ```python
 # async
@@ -163,7 +169,7 @@ await example_task(string_param='I am async task with 30 sec countdown').delay(c
 example_task(string_param='I am sync task with 15 sec coundown').delay(countdown=15)
 ```
 
-Attention: for this moment you are able to delaying tasks only for 15 minutes maximum. Later it will be 24 hours (in dev already). Also you will have opportunity to delay your tasks more then 24 hours by postgres/rabbitmq/kafka broker for long life tasks.
+Attention: for this moment you are able to delaying tasks only for 24 hours maximum. You will have opportunity to delay your tasks more then 24 hours by postgres/rabbitmq/kafka broker for long life tasks. Now you should use postgres, for example, to save your task list in Celery =(. So, i'm working on it.
 
 ### Task execution normally
 
@@ -181,28 +187,31 @@ example_task(string_param='I am sync task for immidiatly execuiton').execute()
 
 Consumers need for listening messages from message broker, executing your tasks and writing result backend to selected `ResultBackend`.
 To get your consumer instance use `.consumer` property of your selected broker.
-For start consuming your tasks you need to call `.start_consume()` method. This method recieved 1 argument: `processes` (by default 1). There is no recomendation how many procceses you should use. It depends from many things. So, just try to understand optimal value imperatively.
+For start consuming your tasks you need to call `.start_consume()` method. This method recieved 2 arguments: `queue` (by default 'default'), `processes` (by default 1). There is no recomendation how many procceses you should use. It depends from many things. So, just try to understand optimal value imperatively.
 
 ```python
 # async
-await broker.consumer.start_consume(processes=2)
+await broker.consumer.start_consume(queue='main', processes=2)
 
 # sync
 broker.consumer.start_consume(processes=3)
 ```
 
-So, if you need to listening many message brokers, you have apportunity for doing this. 
+So, if you need to listening many message brokers, you have apportunity for doing this. Also one consumer intance can listening many queues: 
 
+```python
+# consumer1.py
+broker.consumer.start_consume(queue='main')
 
-### UI
-
-IN DEV
-
-
-### Revocable tasks
-
-IN DEV
+# consumer2.py
+broker.consumer.start_consume(queue='notifications')
+```
 
 ### For developers
 
 WRITING...
+
+
+### Contributing
+
+See `CONTRIBUTING.md`

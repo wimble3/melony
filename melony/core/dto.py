@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Sequence
+from typing import Any, Iterable
 
 from melony.core.tasks import Task
 
@@ -9,8 +9,8 @@ __all__ = ()
 
 @dataclass(frozen=True, kw_only=True, slots=True)
 class FilteredTasksDTO:
-    tasks_to_execute: Sequence[Task]
-    tasks_to_push_back: Sequence[Task]
+    tasks_to_execute: Iterable[Task]
+    tasks_to_push_back: Iterable[Task]
 
 
 @dataclass(frozen=True, kw_only=True, slots=True)
@@ -21,5 +21,12 @@ class TaskResultDTO:
 
 @dataclass(frozen=True, kw_only=True, slots=True)
 class TaskExecResultsDTO:
-    tasks_with_result: Sequence[TaskResultDTO]
-    tasks_to_retry: Sequence[Task]
+    tasks_with_result: Iterable[TaskResultDTO]
+    tasks_to_retry: Iterable[Task]
+
+
+@dataclass(frozen=True, kw_only=True, slots=True)
+class QueueMetaDTO:
+    queue: str
+    is_consumed: bool
+    

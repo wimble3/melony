@@ -5,6 +5,7 @@ from functools import wraps
 from inspect import signature
 from typing import Callable, ParamSpec, TypeVar, final, overload
 
+from melony.core.consts import DEFAULT_QUEUE
 from melony.core.consumers import BaseConsumer
 from melony.core.publishers import Publisher
 from melony.core.task_wrappers import AsyncTaskWrapper, SyncTaskWrapper, TaskWrapper
@@ -38,7 +39,8 @@ class BaseBroker(ABC):
         self,
         *, 
         retries: int = 1,
-        retry_timeout: int = 0
+        retry_timeout: int = 0,
+        queue: str = DEFAULT_QUEUE
     ) -> Callable[
             [Callable[_TaskParams, _TaskResult]],  # type: ignore
             Callable[_TaskParams, TaskWrapper]
@@ -52,10 +54,11 @@ class BaseBroker(ABC):
         *,
         retries: int = 1,
         retry_timeout: int = 0,
+        queue: str = DEFAULT_QUEUE
     ) -> Callable[_TaskParams, TaskWrapper] | Callable[[Callable], Callable]:
         """Decorator for registering your melony tasks.
         
-        After your broker initizization (see selectetd broker documentation), 
+        After your broker initizization (see selected broker documentation), 
         you are able to register task for next delaying or execution.
         
         Task declaration example:
@@ -77,7 +80,7 @@ class BaseBroker(ABC):
 
         Task execution example:
 
-            >>> example_task(string_param='execute now').execute()
+            >>> await example_task(string_param='execute now').execute()
         """
         self._validate_params(retries, retry_timeout)
         def _decorate(  # noqa: WPS430
@@ -93,26 +96,33 @@ class BaseBroker(ABC):
                 bound.apply_defaults()
 
                 if asyncio.iscoroutinefunction(func):
+                    wrapper.__annotations__ = {
+                        **func.__annotations__,
+                        "return": AsyncTaskWrapper
+                    }
                     return AsyncTaskWrapper(
                         func=func,
                         broker=self,
                         bound_args=bound.arguments,
                         retries=retries,
-                        retry_timeout=retry_timeout
+                        retry_timeout=retry_timeout,
+                        queue=queue
                     )
                 else:
+                    wrapper.__annotations__ = {
+                        **func.__annotations__,
+                        "return": SyncTaskWrapper
+                    }
                     return SyncTaskWrapper(
                         func=func,
                         broker=self,
                         bound_args=bound.arguments,
                         retries=retries,
-                        retry_timeout=retry_timeout
+                        retry_timeout=retry_timeout,
+                        queue=queue
                     )
 
-            wrapper.__annotations__ = {
-                **func.__annotations__,
-                "return": AsyncTaskWrapper
-            }
+
             return wrapper
 
         if func is None:

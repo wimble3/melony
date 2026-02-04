@@ -23,7 +23,7 @@ __all__ = (
 type Task = AsyncTask | SyncTask
 
 
-_MAX_COUNTDOWN_SEC: Final[int] = 900
+_MAX_COUNTDOWN_SEC: Final[int] = 86400
 _MAX_COUNTDOWN_MIN: Final[float] = _MAX_COUNTDOWN_SEC / 60
 
 
@@ -41,10 +41,11 @@ class _BaseTask:
     countdown: int
     retries: int
     retry_timeout: int
+    queue: str
+    is_coro: bool
 
     _meta: _TaskMeta = field(default_factory=_TaskMeta)
 
-    @final
     def __post_init__(self) -> None:
         self._validate_countdown()
         self._set_retries_left_to_meta()
@@ -96,7 +97,9 @@ class _Task(_BaseTask):
             func_path=self.func_path,
             retries=self.retries,
             retry_timeout=self.retry_timeout,
-            _meta=self._meta
+            queue=self.queue,
+            is_coro=self.is_coro,
+            _meta=self._meta,
         )
 
     @final

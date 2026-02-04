@@ -1,7 +1,6 @@
 import asyncio
 
-from collections.abc import Iterable
-from typing import Any, Sequence, final
+from typing import Any, final, Iterable
 from redis.asyncio import Redis
 from redis import Redis as SyncRedis
 
@@ -24,7 +23,11 @@ class AsyncTaskExecutor:
         self._result_backend = result_backend_saver
 
     @final
-    async def execute_tasks(self, tasks: Sequence[Task]) -> TaskExecResultsDTO:
+    async def execute_tasks(
+        self,
+        tasks: Iterable[Task],
+        consumer_id: int
+    ) -> TaskExecResultsDTO:
         task_map: dict[asyncio.Task, Task] = {}
         asyncio_tasks: list[asyncio.Task] = []
         
@@ -37,7 +40,8 @@ class AsyncTaskExecutor:
         
         tasks_exec_results = await self._asyncio_wait_tasks(
             pending=asyncio_tasks,
-            task_map=task_map
+            task_map=task_map,
+            consumer_id=consumer_id
         )
         return tasks_exec_results
 
@@ -45,7 +49,8 @@ class AsyncTaskExecutor:
     async def _asyncio_wait_tasks(  # noqa: WPS210, WPS231
         self,
         pending: Iterable[asyncio.Task],
-        task_map: dict[asyncio.Task, Task]
+        task_map: dict[asyncio.Task, Task],
+        consumer_id: int
     ) -> TaskExecResultsDTO:
         tasks_to_retry: list[Task] = []
         tasks_done: list[TaskResultDTO] = []
@@ -60,12 +65,15 @@ class AsyncTaskExecutor:
                     log_error(
                         f"Task with id {task.task_id} has been executed with error: "
                         f"{task_result}",
-                        exc=task_result
+                        exc=task_result,
+                        consumer_id=consumer_id
                     )
                     tasks_to_retry.append(task)
                     continue
                 log_info(
-                    f"Task with id '{task.task_id}' completed with result {task_result=}"
+                    f"Task with id '{task.task_id}' completed with result "
+                    f"{task_result=}",
+                    consumer_id=consumer_id
                 )
                 tasks_done.append(TaskResultDTO(task=task, task_result=task_result))
             if self._result_backend:
@@ -95,7 +103,11 @@ class SyncTaskExecutor:
         self._result_backend_saver = result_backend_saver
 
     @final
-    def execute_tasks(self, tasks: Sequence[Task]) -> TaskExecResultsDTO:
+    def execute_tasks(
+        self,
+        tasks: Iterable[Task], 
+        consumer_id: int
+    ) -> TaskExecResultsDTO:
         tasks_to_retry: list[Task] = []
         tasks_done: list[TaskResultDTO] = []
         for task in tasks:
@@ -116,7 +128,8 @@ class SyncTaskExecutor:
                 continue
 
             log_info(
-                f"Task with id '{task.task_id}' completed with result {task_result=}"
+                f"Task with id '{task.task_id}' completed with result {task_result=}",
+                consumer_id=consumer_id
             )
             tasks_done.append(TaskResultDTO(task=task, task_result=task_result))
 
