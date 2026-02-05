@@ -25,7 +25,7 @@ To be continue
 
 ## Quickstart
 
-Initialize melony broker at `tasks.py`:
+Initialize melony broker at `tasks.py` and declare your tasks:
 ```python
 import time
 from melony import RedisBroker
