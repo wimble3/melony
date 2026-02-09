@@ -6,9 +6,13 @@
   <em>Modern task manager for python with types, async and sync support!</em>
 </p>
 
-[![Python Version](https://img.shields.io/pypi/pyversions/melony.svg)](https://pypi.org/project/melony/)
-[![wemake-python-styleguide](https://img.shields.io/badge/style-wemake-000000.svg)](https://github.com/wemake-services/wemake-python-styleguide)
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/wimble3/melony)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/melony?style=for-the-badge)](https://pypi.org/project/melony/)
+[![PyPI](https://img.shields.io/pypi/v/melony?style=for-the-badge)](https://pypi.org/project/melony/)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/melony?style=for-the-badge)](https://pypistats.org/packages/melony)
+[![GitHub issues](https://img.shields.io/github/issues/wimble3/melony?style=for-the-badge)](https://github.com/wimble3/melony/issues)
+[![GitHub stars](https://img.shields.io/github/stars/wimble3/melony?style=for-the-badge)](https://github.com/wimble3/melony/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/wimble3/melony?style=for-the-badge)](https://github.com/wimble3/melony/network)
+[![code style - wemake](https://img.shields.io/badge/code%20style-wemake-000000?style=for-the-badge)](https://github.com/wemake-services/wemake-python-styleguide)
 </div>
 
 ## Features
