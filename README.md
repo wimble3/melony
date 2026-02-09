@@ -9,7 +9,7 @@
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/melony?style=for-the-badge)](https://pypi.org/project/melony/)
 [![PyPI](https://img.shields.io/pypi/v/melony?style=for-the-badge)](https://pypi.org/project/melony/)
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/melony?style=for-the-badge)](https://pypistats.org/packages/melony)
-[![GitHub issues](https://img.shields.io/github/issues/wimble3/melony?style=for-the-badge)](https://github.com/wimble3/melony/issues)
+[![Ask DeepWiki](https://img.shields.io/badge/Ask-DeepWiki-000000?style=for-the-badge)](https://deepwiki.com/wimble3/melony)
 [![GitHub stars](https://img.shields.io/github/stars/wimble3/melony?style=for-the-badge)](https://github.com/wimble3/melony/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/wimble3/melony?style=for-the-badge)](https://github.com/wimble3/melony/forks)
 [![code style - wemake](https://img.shields.io/badge/code%20style-wemake-000000?style=for-the-badge)](https://github.com/wemake-services/wemake-python-styleguide)
