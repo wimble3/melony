@@ -1,8 +1,15 @@
 <h1>🍈 Melony</h1>
 
+</div>
+
 <p align="center">
   <em>Modern task manager for python with types, async and sync support!</em>
 </p>
+
+[![Python Version](https://img.shields.io/pypi/pyversions/melony.svg)](https://pypi.org/project/melony/)
+[![wemake-python-styleguide](https://img.shields.io/badge/style-wemake-000000.svg)](https://github.com/wemake-services/wemake-python-styleguide)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/wimble3/melony)
+</div>
 
 ## Features
 
