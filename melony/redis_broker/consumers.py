@@ -14,7 +14,7 @@ type RedisConsumer = AsyncRedisConsumer | SyncRedisConsumer
 
 @final
 class AsyncRedisConsumer(BaseAsyncConsumer):
-    _brpop_timeout: Final[float] = 0.01
+    _brpop_timeout: Final[float] = 0.1
 
     def __init__(
         self,
@@ -60,7 +60,7 @@ class AsyncRedisConsumer(BaseAsyncConsumer):
 
 @final
 class SyncRedisConsumer(BaseSyncConsumer):
-    _brpop_timeout: Final[float] = 0.01
+    _brpop_timeout: Final[float] = 0.1
 
     def __init__(
         self,

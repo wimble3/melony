@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any, ParamSpec, TypeVar, final
 from uuid import uuid4
 
 from melony.core.consts import QUEUE_PREFIX
-from melony.core.tasks import AsyncTask, SyncTask, Task
+from melony.core.tasks import AsyncTask, SyncTask
 from melony.logger import log_info
 
 if TYPE_CHECKING:
