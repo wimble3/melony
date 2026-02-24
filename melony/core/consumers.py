@@ -1,5 +1,6 @@
 import asyncio
 import multiprocessing
+import time
 
 from abc import ABC, abstractmethod
 from datetime import datetime
@@ -82,14 +83,27 @@ class BaseAsyncConsumer(ABC, BaseConsumer):  # noqa: WPS214
             await self._consumer_loop(queue=queue, consumer_id=0)
             return
 
-        for process_num in range(processes):
-            process = multiprocessing.Process(
-                name=f"melony-process-{process_num}",
-                target=self._run_consumer_in_process,
-                args=(queue, process_num),
-                daemon=False
-            )
-            process.start()
+        running_processes = []
+        
+        try:
+            for process_num in range(processes):
+                process = multiprocessing.Process(
+                    name=f"melony-process-{process_num}",
+                    target=self._run_consumer_in_process,
+                    args=(queue, process_num),
+                    daemon=False
+                )
+                running_processes.append(process)
+                process.start()
+            
+            for process in running_processes:
+                process.join()
+                
+        except KeyboardInterrupt:
+            for process in running_processes:
+                if process.is_alive():
+                    process.terminate()
+        
 
     @abstractmethod
     async def _pop_tasks(self, queue: str) -> Iterable[Task]:
