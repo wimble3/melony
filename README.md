@@ -143,7 +143,7 @@ broker = RedisBroker(redis_connection=redis_connection)
 
 
 @broker.task(retries=2, retry_timeout=30)
-async def example_task(string_param: str) -> str:
+async def async_task(string_param: str) -> str:
     await asyncio.sleep(2)
     return string_param.upper()
 ```
@@ -161,7 +161,7 @@ broker = RedisBroker(redis_connection=redis_connection)
 
 
 @broker.task(retries=2, retry_timeout=30)
-def example_task(string_param: str) -> str:
+def sync_task(string_param: str) -> str:
     time.sleep(2)
     return string_param.upper()
 ```
@@ -174,10 +174,10 @@ After your tasks declaration, you are able to delay your tasks for next executio
 
 ```python
 # async
-await async_task(string_param='I am async task for immidiatly execuiton').execute()
+await async_task(string_param='I am async task with 15 sec coundown').dalay(countdown=15)
 
 # sync
-sync_task(string_param='I am sync task for immidiatly execuiton').execute()
+sync_task(string_param='I am sync task with 30 sec coundown').execute(countdown=30)
 ```
 
 Attention: for this moment you are able to delaying tasks only for 24 hours maximum. You will have opportunity to delay your tasks more then 24 hours by postgres/rabbitmq/kafka broker for long life tasks. Now you should use postgres, for example, to save your task list in Celery =(. So, i'm working on it.
@@ -188,10 +188,10 @@ If your function is decorated by `@broker.task` decorator, you still are able to
 
 ```python
 # async
-await example_task(string_param='I am async task for immidiatly execuiton').execute()
+await async_task(string_param='I am async task for immidiatly execuiton').execute()
 
 # sync
-example_task(string_param='I am sync task for immidiatly execuiton').execute()
+sync_task(string_param='I am sync task for immidiatly execuiton').execute()
 ```
 
 ### Consuming process
@@ -217,11 +217,6 @@ broker.consumer.start_consume(queue='main')
 # consumer2.py
 broker.consumer.start_consume(queue='notifications')
 ```
-
-### For developers
-
-WRITING...
-
 
 ### Contributing
 
