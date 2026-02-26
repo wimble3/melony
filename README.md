@@ -174,10 +174,10 @@ After your tasks declaration, you are able to delay your tasks for next executio
 
 ```python
 # async
-await example_task(string_param='I am async task with 30 sec countdown').delay(countdown=30)
+await async_task(string_param='I am async task for immidiatly execuiton').execute()
 
 # sync
-example_task(string_param='I am sync task with 15 sec coundown').delay(countdown=15)
+sync_task(string_param='I am sync task for immidiatly execuiton').execute()
 ```
 
 Attention: for this moment you are able to delaying tasks only for 24 hours maximum. You will have opportunity to delay your tasks more then 24 hours by postgres/rabbitmq/kafka broker for long life tasks. Now you should use postgres, for example, to save your task list in Celery =(. So, i'm working on it.
