@@ -1,7 +1,7 @@
 import asyncio
 import json
 
-from typing import Sequence, final, override
+from typing import Iterable, Sequence, final, override
 from redis.asyncio import Redis
 from redis import Redis as SyncRedis
 
@@ -24,7 +24,7 @@ class _AsyncRedisResultBackendSaver(IAsyncResultBackendSaver):
         self._connection = redis_connection
 
     @override
-    async def save_results(self, task_results: Sequence[TaskResultDTO]) -> None:
+    async def save_results(self, task_results: Iterable[TaskResultDTO]) -> None:
         set_result_coroutines = []
 
         for task_result_info in task_results:
@@ -48,7 +48,7 @@ class _SyncRedisResultBackendSaver(ISyncResultBackendSaver):
         self._connection = redis_connection
 
     @override
-    def save_results(self, task_results: Sequence[TaskResultDTO]) -> None:
+    def save_results(self, task_results: Iterable[TaskResultDTO]) -> None:
         for task_result_info in task_results:
             task_id = task_result_info.task.task_id
             redis_key = f"{REDIS_RESULT_BACKEND_KEY}{task_id}"

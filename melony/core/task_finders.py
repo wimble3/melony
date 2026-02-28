@@ -11,6 +11,7 @@ def find_task_func(func_path: str) -> Callable:
     except (ImportError, AttributeError, ValueError) as exc:
         raise ImportError(f"Cannot import function '{func_path}': {exc}")
 
+
 def _find_func(func_path: str) -> Callable:
     module_name, func_name = func_path.rsplit(".", 1)
     module = importlib.import_module(module_name)

@@ -26,7 +26,7 @@
 - [ ] Scaled automatically
 - [x] Retry policy (cascade or simmilar soon)
 - [ ] Revocable tasks (pipelines)
-- [ ] Cron tasks
+- [x] Cron tasks
 - [ ] Powerful UI with analytics, full task control and alerts
 - [ ] 100% test coverage
 - [x] Great docs
@@ -216,6 +216,73 @@ broker.consumer.start_consume(queue='main')
 
 # consumer2.py
 broker.consumer.start_consume(queue='notifications')
+```
+
+### Cron tasks
+
+Cron tasks are scheduled functions that run automatically on a time-based schedule. Declare them the same way as regular tasks — just add the `cron` parameter with a standard cron expression. The task is registered in the broker at decoration time and picked up by the cron consumer at startup.
+
+```python
+# async
+import asyncio
+
+from melony import RedisBroker
+from redis.asyncio import Redis
+
+redis_connection = Redis(host='localhost', port=6379)
+broker = RedisBroker(redis_connection=redis_connection)
+
+
+@broker.task(cron="* * * * *", retries=2, retry_timeout=5)
+async def send_report() -> None:
+    await asyncio.sleep(1)
+    print("report sent")
+```
+
+```python
+# sync
+from melony import RedisBroker
+from redis import Redis
+
+redis_connection = Redis(host='localhost', port=6379)
+broker = RedisBroker(redis_connection=redis_connection)
+
+
+@broker.task(cron="0 9 * * 1-5", retries=3, retry_timeout=10)
+def send_report() -> None:
+    print("report sent")
+```
+
+A cron task still works as a regular task — you can call `.delay()` on it at any time outside of the schedule.
+
+To start executing scheduled tasks, run the cron consumer using the `.cron_consumer` property of your broker. It accepts the same `queue` and `processes` arguments as the regular consumer.
+
+```python
+# async
+await broker.cron_consumer.start_consume(queue='default', processes=1)
+
+# sync
+broker.cron_consumer.start_consume(queue='default', processes=1)
+```
+
+The cron consumer and the regular consumer are independent — you can run both in parallel, each listening to its own queue type.
+
+```python
+# consumer.py — regular tasks
+broker.consumer.start_consume(queue='main')
+
+# cron_consumer.py — scheduled tasks
+broker.cron_consumer.start_consume(queue='main')
+```
+
+If a cron task raises an exception, it is retried up to `retries` times with `retry_timeout` seconds between attempts. After success or all retries are exhausted, the task is automatically rescheduled for its next cron tick.
+
+An invalid cron expression raises `ValueError` immediately at decoration time:
+
+```python
+@broker.task(cron="not-valid")  # raises ValueError: Invalid cron expression: 'not-valid'
+def my_task() -> None:
+    ...
 ```
 
 ### For developers

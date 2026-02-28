@@ -4,6 +4,7 @@ __all__ = ()
 
 # default
 QUEUE_PREFIX: Final[str] = "melony_tasks:"
+CRON_QUEUE_PREFIX: Final[str] = "melony_cron:"
 DEFAULT_QUEUE: Final[str] = f"default"
 
 # redis
