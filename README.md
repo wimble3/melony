@@ -234,10 +234,10 @@ redis_connection = Redis(host='localhost', port=6379)
 broker = RedisBroker(redis_connection=redis_connection)
 
 
-@broker.task(cron="* * * * *", retries=2, retry_timeout=5)
+@broker.task(cron='* * * * *', retries=2, retry_timeout=5)
 async def send_report() -> None:
     await asyncio.sleep(1)
-    print("report sent")
+    print('report sent')
 ```
 
 ```python
@@ -249,9 +249,9 @@ redis_connection = Redis(host='localhost', port=6379)
 broker = RedisBroker(redis_connection=redis_connection)
 
 
-@broker.task(cron="0 9 * * 1-5", retries=3, retry_timeout=10)
+@broker.task(cron='0 9 * * 1-5', retries=3, retry_timeout=10)
 def send_report() -> None:
-    print("report sent")
+    print('report sent')
 ```
 
 A cron task still works as a regular task — you can call `.delay()` on it at any time outside of the schedule.
@@ -281,8 +281,8 @@ If a cron task raises an exception, it is retried up to `retries` times with `re
 An invalid cron expression raises `ValueError` immediately at decoration time:
 
 ```python
-@broker.task(cron="not-valid")  # raises ValueError: Invalid cron expression: 'not-valid'
-def my_task() -> None:
+@broker.task(cron='not-valid')  # raises ValueError: Invalid cron expression: 'not-valid'
+def my_cron_task() -> None:
     ...
 ```
 
