@@ -9,6 +9,20 @@ dependencies = [
     "classes>=0.4.1",
     "pytest>=8.4.1",
     "pytest-asyncio>=1.1.0",
+    "pytest-cov>=6.0.0",
     "redis>=6.4.0",
     "wemake-python-styleguide>=1.3.0",
 ]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+addopts = "--cov=melony --cov-report=xml --cov-report=term-missing"
+
+[tool.coverage.run]
+source = ["melony"]
+omit = ["*/__init__.py"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+precision = 2
