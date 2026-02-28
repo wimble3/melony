@@ -13,6 +13,7 @@
 [![GitHub stars](https://img.shields.io/github/stars/wimble3/melony?style=for-the-badge)](https://github.com/wimble3/melony/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/wimble3/melony?style=for-the-badge)](https://github.com/wimble3/melony/forks)
 [![code style - wemake](https://img.shields.io/badge/code%20style-wemake-000000?style=for-the-badge)](https://github.com/wemake-services/wemake-python-styleguide)
+[![Coverage](https://img.shields.io/codecov/c/github/wimble3/melony?style=for-the-badge)](https://codecov.io/gh/wimble3/melony)
 </div>
 
 ## Features
