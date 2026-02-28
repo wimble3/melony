@@ -22,3 +22,8 @@ def example_task(string_param: str) -> str:
 async def async_example_task(integer: int) -> int:
     await asyncio.sleep(5)
     return integer ** 2
+
+
+@sync_broker.task(cron="* * * * *", retries=2, retry_timeout=10)
+def foo() -> None:
+    raise Exception("ha-ha")

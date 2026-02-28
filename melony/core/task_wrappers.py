@@ -21,7 +21,7 @@ _TaskResult = TypeVar("_TaskResult")
 
 class _BaseTaskWrapper(Awaitable):
     @final
-    def __init__(
+    def __init__(  # noqa: WPS211
         self,
         func: Callable[_TaskParams, _TaskResult],
         broker: "BaseBroker",

@@ -14,6 +14,11 @@ from melony.redis_broker.consumers import (
     SyncRedisConsumer,
     RedisConsumer
 )
+from melony.redis_broker.cron_consumers import (
+    AsyncRedisCronConsumer,
+    RedisCronConsumer,
+    SyncRedisCronConsumer,
+)
 from melony.redis_broker.publishers import AsyncRedisPublisher, SyncRedisPublisher
 
 
@@ -24,7 +29,7 @@ __all__ = ()
 class RedisBroker(BaseBroker):
     """Melony redis broker implementation.
 
-    Needs for task registration.    
+    Needs for task registration.
     Maybe async or sync. It depends from type of your provided connection.
 
     Async initialization example:
@@ -42,7 +47,7 @@ class RedisBroker(BaseBroker):
 
         >>> sync_connection = SyncRedis(host='localhost', port=6379, db=0)
         >>> broker=RedisBroker(redis_connection=sync_connection)
-    
+
     You are able to provide result backend as well.
 
     Result backend example:
@@ -63,6 +68,7 @@ class RedisBroker(BaseBroker):
         redis_connection: Redis | SyncRedis,
         result_backend: IResultBackend | None = None
     ) -> None:
+        super().__init__()
         self._connection = redis_connection
         self._result_backend = result_backend
 
@@ -70,13 +76,13 @@ class RedisBroker(BaseBroker):
     @override
     def publisher(self) -> Publisher:
         """Getter for melony publisher for redis broker.
-        
+
         For advanced users only. Usually you have not to use it.
 
         But if you want, you are able to push your tasks handly by .push() method of your
         publisher.
 
-        For doing this, you should serialize task first, you are able to use your own 
+        For doing this, you should serialize task first, you are able to use your own
         serializer or converter which already exists in melony.core.task_converters
         """
         match self._connection:
@@ -91,13 +97,13 @@ class RedisBroker(BaseBroker):
     @override
     def consumer(self) -> RedisConsumer:
         """Melony redis consumer implementation.
-    
-        Needs for listening messages from redis broker, executing your tasks and writing 
-        result backend to selected ResultBackend (see more about result backend at 
+
+        Needs for listening messages from redis broker, executing your tasks and writing
+        result backend to selected ResultBackend (see more about result backend at
         documentation).
-        
+
         For start consuming your tasks you need to call .start_consume() method.
-        
+
         Run consumer example:
 
             >>> @broker.task
@@ -107,14 +113,14 @@ class RedisBroker(BaseBroker):
 
             >>> broker.consumer.start_consume()  # Run consuming process.
 
-        Also you are able to provide 'processes' parameter for choosing number of processes 
+        Also you are able to provide 'processes' parameter for choosing number of processes
         (workers).
 
         Providing processes param example:
 
             >>> broker.consumer.start_consume(processes=3)
 
-        There is no recomendation how many procceses you should use. It depends from many 
+        There is no recomendation how many procceses you should use. It depends from many
         things. So, just try to understand optimal value imperatively.
         """
         match self._connection:
@@ -141,6 +147,37 @@ class RedisBroker(BaseBroker):
                     publisher=self.publisher,
                     broker=self,
                     result_backend=self._result_backend
+                )
+            case _:
+                assert_never(self._connection)
+
+    @property
+    @override
+    def cron_consumer(self) -> RedisCronConsumer:
+        """Melony redis cron consumer implementation.
+
+        Needs for executing scheduled (cron) tasks registered with the cron parameter.
+
+        Run cron consumer example:
+
+            >>> @broker.task(cron="* * * * *")
+            >>> async def scheduled_task() -> None:
+            >>>     ...
+
+            >>> await broker.cron_consumer.start_consume()
+        """
+        match self._connection:
+            case Redis():
+                return AsyncRedisCronConsumer(
+                    connection=self._connection,
+                    broker=self,
+                    result_backend=self._result_backend,
+                )
+            case SyncRedis():
+                return SyncRedisCronConsumer(
+                    connection=self._connection,
+                    broker=self,
+                    result_backend=self._result_backend,
                 )
             case _:
                 assert_never(self._connection)

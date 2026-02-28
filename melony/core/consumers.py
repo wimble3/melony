@@ -3,7 +3,6 @@ import multiprocessing
 import time
 
 from abc import ABC, abstractmethod
-from datetime import datetime
 from typing import Awaitable, Iterable, final
 from redis.exceptions import ConnectionError
 
@@ -25,6 +24,13 @@ __all__ = ()
 
 class BaseConsumer:
     @final
+    def _run_all_processes(self, processes: list) -> None:
+        for process in processes:
+            process.start()
+        for process in processes:
+            process.join()
+
+    @final
     def _filter_tasks_by_execution_time(
         self,
         tasks: Iterable[Task],
@@ -32,7 +38,7 @@ class BaseConsumer:
     ) -> FilteredTasksDTO:
         tasks_to_execute: list[Task] = []
         tasks_to_push_back: list[Task] = []
-        current_timestamp = datetime.timestamp(datetime.now())
+        current_timestamp = time.time()
         
         for task in tasks:
             task_execution_timestamp = task.get_execution_timestamp()
@@ -84,26 +90,20 @@ class BaseAsyncConsumer(ABC, BaseConsumer):  # noqa: WPS214
             return
 
         running_processes = []
-        
+        for process_num in range(processes):
+            process = multiprocessing.Process(
+                name=f"melony-process-{process_num}",
+                target=self._run_consumer_in_process,
+                args=(queue, process_num),
+                daemon=False,
+            )
+            running_processes.append(process)
         try:
-            for process_num in range(processes):
-                process = multiprocessing.Process(
-                    name=f"melony-process-{process_num}",
-                    target=self._run_consumer_in_process,
-                    args=(queue, process_num),
-                    daemon=False
-                )
-                running_processes.append(process)
-                process.start()
-            
-            for process in running_processes:
-                process.join()
-                
+            self._run_all_processes(running_processes)
         except KeyboardInterrupt:
-            for process in running_processes:
-                if process.is_alive():
-                    process.terminate()
-        
+            for proc in running_processes:
+                if proc.is_alive():
+                    proc.terminate()
 
     @abstractmethod
     async def _pop_tasks(self, queue: str) -> Iterable[Task]:

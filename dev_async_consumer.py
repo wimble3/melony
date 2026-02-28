@@ -1,6 +1,6 @@
 import asyncio
 
-from tasks import async_broker
+from dev_tasks import async_broker
 
 
 async def main() -> None:
