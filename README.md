@@ -91,7 +91,7 @@ uv add melony
 
 ### Brokers
 
-First of all you need to choose your broker. At this moment, you are able to use only `RedisBroker`, but very soon they will be more. Your application can have any numbers of `melony brokers`. You don't have to choose broker by async/sync parameter or import broker from io/sync packages of this lib, just import broker and create it. Thats works for all `melony` entities AT ALL! You don't have to think about this.  So, let's initialize your selected broker:
+First of all you need to choose your broker. At this moment, you are able to use only `RedisBroker`, but very soon there will be more. Your application can have any number of `melony` brokers. You don't have to choose a broker by async/sync parameter or import from io/sync packages—just import the broker and create it. That works for all `melony` entities. So, let's initialize your selected broker:
 
 
 ```python
@@ -101,11 +101,11 @@ from redis import Redis as SyncRedis
 
 # async
 async_redis_connection = Redis(host='localhost', port=6379, db=0)
-broker = RedisBroker(redis_connection=redis_connection)
+broker = RedisBroker(redis_connection=async_redis_connection)
 
 # sync
 sync_redis_connection = SyncRedis(host='localhost', port=6379, db=0)  # Other connection here
-broker = RedisBroker(redis_connection=redis_connection)
+broker = RedisBroker(redis_connection=sync_redis_connection)
 ```
 
 Also you are able to provide result backend to your broker. At this moment, you are able to use only `RedisResultBackend`. Result backend save your task results (return values) to selected database.
@@ -130,7 +130,7 @@ broker = RedisBroker(redis_connection=redis_connection)
 
 ### Task declaration
 
-After your broker initilization, you are able to register task for next delaying and execution using special decorator (broker method) `.task()`, which can recieved 3 arguments: `queue` (string 'default' by default), `retries` (default=1) and `retry_timeout` (default=0). Your task function must be async if you're using io message broker client and sync if it's not.
+After your broker initialization, you can register tasks for delayed execution using the decorator (broker method) `.task()`, which can receive 3 arguments: `queue` (default `'default'`), `retries` (default `1`) and `retry_timeout` (default `0`). Your task function must be async if you're using an async message broker client and sync if it's not.
 
 ```python
 # async
@@ -167,7 +167,7 @@ def sync_task(string_param: str) -> str:
     return string_param.upper()
 ```
 
-You should remember, that parameter `retry_timeout` doesn't guarantee that your task will be executed literally after seconds you selected (depends from your messages value in queue). If you need more accuracy, try to configurate your consumer instances (see consumer documentation: `processes` parameter).
+Remember: the `retry_timeout` parameter doesn't guarantee your task will execute exactly after the selected seconds (depends on queue depth). For more accuracy, tune your consumer instances (see consumer documentation: `processes` parameter).
 
 ### Task delaying
 
@@ -181,11 +181,11 @@ await async_task(string_param='I am async task with 15 sec coundown').dalay(coun
 sync_task(string_param='I am sync task with 30 sec coundown').execute(countdown=30)
 ```
 
-Attention: for this moment you are able to delaying tasks only for 24 hours maximum. You will have opportunity to delay your tasks more then 24 hours by postgres/rabbitmq/kafka broker for long life tasks. Now you should use postgres, for example, to save your task list in Celery =(. So, i'm working on it.
+Attention: at the moment you can delay tasks for a maximum of 24 hours. Longer delays will come with postgres/rabbitmq/kafka brokers. For now, consider using Postgres (e.g., with Celery) for long-lived task storage.
 
 ### Task execution normally
 
-If your function is decorated by `@broker.task` decorator, you still are able to execute this task usually by special method `.execute()` instead `.delay()`. This mehod has no arguments and needed for immidiatly execuiton your function as common python function.
+If your function is decorated with `@broker.task`, you can still execute it immediately via `.execute()` instead of `.delay()`. This method has no arguments and runs the function right away like a normal Python call.
 
 ```python
 # async
