@@ -8,7 +8,7 @@ def readme():
 
 setup(
   name="melony",
-  version="1.1.0",
+  version="1.3.1",
   author="wimble3",
   author_email="wimble@internet.ru",
   description='Multisync task manager for python',
@@ -19,10 +19,11 @@ setup(
   install_requires=[
     "asyncio>=4.0.0",
     "classes>=0.4.1",
+    "croniter>=3.0.0",
     "pytest>=8.4.1",
     "pytest-asyncio>=1.1.0",
+    "pytest-cov>=6.0.0",
     "redis>=6.4.0",
-    "setuptools>=80.10.2",
     "wemake-python-styleguide>=1.3.0",
   ],
   classifiers=[
