@@ -11,8 +11,9 @@ Just remember, that all humans on a planet are Humans!
 2. Call your brach like `feature/<issue-id>-<short-description>` / `fix/<issue-id>-<short-description>`.
 3. Write tests (optional now).
 4. Run linter by command `uv run flake8 --select WPS melony/`
-5. Make PR with description.
-6. Enjoy! =)
+5. Run tests by command `uv run pytest -v`
+6. Make PR with description.
+7. Enjoy! =)
 
 ### If i cannot make a feature?
 
