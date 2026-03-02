@@ -18,6 +18,5 @@ Just remember, that all humans on a planet are Humans!
 ### If i cannot make a feature?
 
 Just remember, that you are able to create an issue (feature request or bug report), i really appriciate it. That small thing can change something.
-Also you always have opportunity to write down to me a letter to wimble@internet.ru and i hope i will find some job for you on this project
 
 # Good luck!
