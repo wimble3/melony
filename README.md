@@ -287,4 +287,4 @@ def my_cron_task() -> None:
 
 ### Contributing
 
-See `CONTRIBUTING.md`
+See [contribution guide](CONTRIBUTING.md)
