@@ -31,7 +31,6 @@
 - [ ] Powerful UI with analytics, full task control and alerts
 - [ ] 100% test coverage
 - [x] Great docs
-- [x] No AI
 
 To be continue
 
@@ -285,11 +284,6 @@ An invalid cron expression raises `ValueError` immediately at decoration time:
 def my_cron_task() -> None:
     ...
 ```
-
-### For developers
-
-WRITING...
-
 
 ### Contributing
 
