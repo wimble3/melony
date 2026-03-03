@@ -29,7 +29,7 @@
 - [ ] Revocable tasks (pipelines)
 - [x] Cron tasks
 - [ ] Powerful UI with analytics, full task control and alerts
-- [ ] 100% test coverage
+- [x] 100% test coverage
 - [x] Great docs
 
 To be continue
