@@ -108,10 +108,10 @@ class RedisBroker(BaseBroker):
 
             >>> @broker.task
             >>> async def example_task(string_param: str) -> str:
-            >>>     asyncio.sleep(2)
+            >>>     await asyncio.sleep(2)
             >>>     return string_param.upper()
 
-            >>> broker.consumer.start_consume()  # Run consuming process.
+            >>> await broker.consumer.start_consume()  # Run consuming process.
 
         Also you are able to provide 'processes' parameter for choosing number of processes
         (workers).
