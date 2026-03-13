@@ -62,7 +62,7 @@ from tasks import broker
 
 broker.consumer.start_consume(processes=2)
 ```
-Schedule a cron task at `tasks.py`:
+Declare a cron task at `tasks.py`:
 ```python
 import time
 from melony import RedisBroker
