@@ -174,10 +174,10 @@ After your tasks declaration, you are able to delay your tasks for next executio
 
 ```python
 # async
-await async_task(string_param='I am async task with 15 sec coundown').dalay(countdown=15)
+await async_task(string_param='I am async task with 15 sec coundown').delay(countdown=15)
 
 # sync
-sync_task(string_param='I am sync task with 30 sec coundown').execute(countdown=30)
+sync_task(string_param='I am sync task with 30 sec coundown').delay(countdown=30)
 ```
 
 Attention: at the moment you can delay tasks for a maximum of 24 hours. Longer delays will come with postgres/rabbitmq/kafka brokers. For now, consider using Postgres (e.g., with Celery) for long-lived task storage.
