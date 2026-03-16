@@ -1,6 +1,6 @@
 import pytest
 
-from melony.core.task_finders import find_task_func
+from melony.core.finders import find_task_func
 
 
 def test_find_task_func_returns_callable_from_stdlib():

@@ -72,7 +72,7 @@ async def test_async_redis_consumer_pop_tasks_returns_one_task():
         None,
     ])
     publisher = _async_publisher(conn)
-    with patch("melony.core.task_finders.find_task_func", return_value=_sync_func):
+    with patch("melony.core.finders.find_task_func", return_value=_sync_func):
         consumer = AsyncRedisConsumer(publisher=publisher, broker=MagicMock())
         tasks = await consumer._pop_tasks("melony_tasks:default")
 
@@ -91,7 +91,7 @@ async def test_async_redis_consumer_pop_tasks_returns_multiple_tasks():
         None,
     ])
     publisher = _async_publisher(conn)
-    with patch("melony.core.task_finders.find_task_func", return_value=_sync_func):
+    with patch("melony.core.finders.find_task_func", return_value=_sync_func):
         consumer = AsyncRedisConsumer(publisher=publisher, broker=MagicMock())
         tasks = await consumer._pop_tasks("melony_tasks:default")
 
@@ -105,7 +105,7 @@ async def test_async_redis_consumer_deserialize_task():
     task = _make_sync_task()
     serialized = task.as_json().encode("utf-8")
 
-    with patch("melony.core.task_finders.find_task_func", return_value=_sync_func):
+    with patch("melony.core.finders.find_task_func", return_value=_sync_func):
         result = consumer._deserialize_to_task_from_redis((b"queue", serialized))
 
     assert result.task_id == "t-1"
@@ -130,7 +130,7 @@ def test_sync_redis_consumer_pop_tasks_returns_one_task():
         None,
     ]
     publisher = _sync_publisher(conn)
-    with patch("melony.core.task_finders.find_task_func", return_value=_sync_func):
+    with patch("melony.core.finders.find_task_func", return_value=_sync_func):
         consumer = SyncRedisConsumer(publisher=publisher, broker=MagicMock())
         tasks = consumer._pop_tasks("melony_tasks:default")
 
@@ -149,7 +149,7 @@ def test_sync_redis_consumer_pop_tasks_returns_multiple_tasks():
         None,
     ]
     publisher = _sync_publisher(conn)
-    with patch("melony.core.task_finders.find_task_func", return_value=_sync_func):
+    with patch("melony.core.finders.find_task_func", return_value=_sync_func):
         consumer = SyncRedisConsumer(publisher=publisher, broker=MagicMock())
         tasks = consumer._pop_tasks("melony_tasks:default")
 
@@ -163,7 +163,7 @@ def test_sync_redis_consumer_deserialize_task():
     task = _make_sync_task()
     serialized = task.as_json().encode("utf-8")
 
-    with patch("melony.core.task_finders.find_task_func", return_value=_sync_func):
+    with patch("melony.core.finders.find_task_func", return_value=_sync_func):
         result = consumer._deserialize_to_task_from_redis((b"queue", serialized))
 
     assert result.task_id == "t-1"
