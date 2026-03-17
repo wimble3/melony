@@ -40,12 +40,12 @@ Initialize melony broker at `tasks.py` and declare your tasks:
 ```python
 import time
 from melony import RedisBroker
-from redis import Redis
+from redis import Redis  # or async redis here
 
 broker = RedisBroker(redis_connection=Redis(host='localhost', port=6379))
 
 @broker.task(queue='notifications', retries=2, retry_timeout=30)
-def example_task(string_param: str) -> str:
+def example_task(string_param: str) -> str:  # or async task here
     time.sleep(5)
     return string_param.upper()
 ```
