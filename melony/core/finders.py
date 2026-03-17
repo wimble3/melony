@@ -2,6 +2,8 @@ import importlib
 
 from typing import Callable
 
+from melony.core.brokers import BaseBroker
+
 __all__ = ()
 
 
@@ -12,12 +14,19 @@ def find_task_func(func_path: str) -> Callable:
         raise ImportError(f"Cannot import function '{func_path}': {exc}")
 
 
+def find_broker(broker_path: str) -> BaseBroker:
+    try:
+        return _find_func(broker_path)
+    except (ImportError, AttributeError, ValueError) as exc:
+        raise ImportError(f"Cannot import broker '{broker_path}': {exc}")
+
+
 def _find_func(func_path: str) -> Callable:
     module_name, func_name = func_path.rsplit(".", 1)
     module = importlib.import_module(module_name)
     func = getattr(module, func_name)
-    
+
     if not callable(func):
         raise ValueError(f"'{func_name}' is not callable")
-        
+
     return func
