@@ -28,6 +28,7 @@
 - [x] Retry policy (cascade or simmilar soon)
 - [ ] Revocable tasks (pipelines)
 - [x] Cron tasks
+- [x] No dict/magic-string configuration
 - [ ] Powerful UI with analytics, full task control and alerts
 - [x] 100% test coverage
 - [x] Great docs
