@@ -83,7 +83,7 @@ class BaseBroker(ABC):
 
             >>> @broker.task
             >>> async def example_task(string_param: str) -> str:
-            ...     asyncio.sleep(2)
+            ...     await asyncio.sleep(2)
             ...     return string_param.upper()
 
         Now you have opportunity to call special method for execute your task after some

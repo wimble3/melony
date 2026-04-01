@@ -28,6 +28,7 @@
 - [x] Retry policy (cascade or simmilar soon)
 - [ ] Revocable tasks (pipelines)
 - [x] Cron tasks
+- [x] No dict/magic-string configuration
 - [ ] Powerful UI with analytics, full task control and alerts
 - [x] 100% test coverage
 - [x] Great docs
@@ -40,12 +41,12 @@ Initialize melony broker at `tasks.py` and declare your tasks:
 ```python
 import time
 from melony import RedisBroker
-from redis import Redis
+from redis import Redis  # or async redis here
 
 broker = RedisBroker(redis_connection=Redis(host='localhost', port=6379))
 
 @broker.task(queue='notifications', retries=2, retry_timeout=30)
-def example_task(string_param: str) -> str:
+def example_task(string_param: str) -> str:  # or async task here
     time.sleep(5)
     return string_param.upper()
 ```
@@ -62,7 +63,26 @@ from tasks import broker
 
 broker.consumer.start_consume(processes=2)
 ```
+Declare a cron task at `tasks.py`:
+```python
+import time
+from melony import RedisBroker
+from redis import Redis
 
+broker = RedisBroker(redis_connection=Redis(host='localhost', port=6379))
+
+@broker.task(cron='0 9 * * 1-5', retries=2, retry_timeout=30)
+def daily_report() -> str:
+    time.sleep(1)
+    return 'report sent'
+```
+
+Run your cron consumer at `cron_consumer.py`
+```python
+from tasks import broker
+
+broker.cron_consumer.start_consume(processes=1)
+```
 
 ## Avaible brokers
 
@@ -174,10 +194,10 @@ After your tasks declaration, you are able to delay your tasks for next executio
 
 ```python
 # async
-await async_task(string_param='I am async task with 15 sec coundown').dalay(countdown=15)
+await async_task(string_param='I am async task with 15 sec coundown').delay(countdown=15)
 
 # sync
-sync_task(string_param='I am sync task with 30 sec coundown').execute(countdown=30)
+sync_task(string_param='I am sync task with 30 sec coundown').delay(countdown=30)
 ```
 
 Attention: at the moment you can delay tasks for a maximum of 24 hours. Longer delays will come with postgres/rabbitmq/kafka brokers. For now, consider using Postgres (e.g., with Celery) for long-lived task storage.

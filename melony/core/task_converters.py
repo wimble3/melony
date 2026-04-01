@@ -3,7 +3,7 @@ import json
 from abc import ABC, abstractmethod
 
 from melony.core.brokers import BaseBroker
-from melony.core.task_finders import find_task_func
+from melony.core.finders import find_task_func
 from melony.core.tasks import _TaskMeta, AsyncTask, SyncTask, Task
 
 

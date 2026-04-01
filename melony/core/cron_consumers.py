@@ -8,7 +8,7 @@ from redis.exceptions import ConnectionError
 
 from melony.core.consts import CRON_QUEUE_PREFIX, DEFAULT_QUEUE
 from melony.core.cron_tasks import CronEntry
-from melony.core.task_finders import find_task_func
+from melony.core.finders import find_task_func
 from melony.logger import log_error, log_info
 
 if TYPE_CHECKING:
