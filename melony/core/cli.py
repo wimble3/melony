@@ -99,6 +99,5 @@ def main(broker: BaseBroker, argv: Optional[list[str]] = None) -> None:
         print("\nStopped by user")
         sys.exit(0)
     except Exception as e:
-        import logging
-        logging.error("Error occurred", exc_info=True)
+        print(f"Error: {e}")
         sys.exit(1)
