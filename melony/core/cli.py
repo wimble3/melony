@@ -14,42 +14,42 @@ def create_parser() -> argparse.ArgumentParser:
         prog="melony",
         description="Melony task queue CLI"
     )
-    
+
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
-    
+
     # Consumer command
     consumer_parser = subparsers.add_parser("consumer", help="Start task consumer")
     consumer_parser.add_argument(
-        "--queue", 
-        default="default", 
+        "--queue",
+        default="default",
         help="Queue name to consume from (default: default)"
     )
     consumer_parser.add_argument(
-        "--processes", 
-        type=int, 
-        default=1, 
+        "--processes",
+        type=int,
+        default=1,
         help="Number of processes (default: 1)"
     )
     consumer_parser.add_argument(
-        "--sync", 
-        action="store_true", 
+        "--sync",
+        action="store_true",
         help="Use sync consumer instead of async"
     )
-    
+
     # Cron consumer command
     cron_parser = subparsers.add_parser("cron", help="Start cron consumer")
     cron_parser.add_argument(
-        "--queue", 
-        default="default", 
+        "--queue",
+        default="default",
         help="Queue name to consume from (default: default)"
     )
     cron_parser.add_argument(
-        "--processes", 
-        type=int, 
-        default=1, 
+        "--processes",
+        type=int,
+        default=1,
         help="Number of processes (default: 1)"
     )
-    
+
     return parser
 
 
@@ -71,12 +71,19 @@ async def run_cron_consumer(broker: BaseBroker, queue: str, processes: int) -> N
 def main(broker: BaseBroker, argv: Optional[list[str]] = None) -> None:
     """Main CLI entry point."""
     parser = create_parser()
-    args = parser.parse_args(argv)
-    
+
+    try:
+        args = parser.parse_args(argv)
+    except SystemExit as e:
+        if e.code == 2:
+            sys.exit(1)
+        else:
+            raise
+
     if args.command is None:
         parser.print_help()
         sys.exit(1)
-    
+
     try:
         if args.command == "consumer":
             if args.sync:
@@ -92,5 +99,6 @@ def main(broker: BaseBroker, argv: Optional[list[str]] = None) -> None:
         print("\nStopped by user")
         sys.exit(0)
     except Exception as e:
-        print(f"Error: {e}")
+        import logging
+        logging.error("Error occurred", exc_info=True)
         sys.exit(1)
