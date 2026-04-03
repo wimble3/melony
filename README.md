@@ -35,6 +35,8 @@
 
 To be continue
 
+</br>
+
 ## Quickstart
 
 Initialize melony broker at `tasks.py` and declare your tasks:
@@ -84,6 +86,9 @@ from tasks import broker
 broker.cron_consumer.start_consume(processes=1)
 ```
 
+
+</br>
+
 ## Avaible brokers
 
 - [x] Redis
@@ -92,6 +97,7 @@ broker.cron_consumer.start_consume(processes=1)
 
 To be continue
 
+</br>
 
 ## Installation
 
@@ -105,6 +111,7 @@ Using uv:
 uv add melony
 ```
 
+</br>
 
 ## Documentation
 
@@ -146,6 +153,7 @@ sync_redis_connection = SyncRedis(host='localhost', port=6379, db=0)
 result_backend = RedisResultBackend(redis_connection=sync_redis_connection)
 broker = RedisBroker(redis_connection=redis_connection)
 ```
+</br>
 
 ### Task declaration
 
@@ -188,6 +196,8 @@ def sync_task(string_param: str) -> str:
 
 Remember: the `retry_timeout` parameter doesn't guarantee your task will execute exactly after the selected seconds (depends on queue depth). For more accuracy, tune your consumer instances (see consumer documentation: `processes` parameter).
 
+</br>
+
 ### Task delaying
 
 After your tasks declaration, you are able to delay your tasks for next execution by `countdown` time. For doing this, you need to call your task as usually, then call special `TaskWrapper` method. This method calls `.delay()`. 
@@ -214,6 +224,8 @@ await async_task(string_param='I am async task for immidiatly execuiton').execut
 sync_task(string_param='I am sync task for immidiatly execuiton').execute()
 ```
 
+</br>
+
 ### Consuming process
 
 Consumers need for listening messages from message broker, executing your tasks and writing result backend to selected `ResultBackend`.
@@ -237,6 +249,8 @@ broker.consumer.start_consume(queue='main')
 # consumer2.py
 broker.consumer.start_consume(queue='notifications')
 ```
+
+</br>
 
 ### Cron tasks
 
@@ -304,6 +318,8 @@ An invalid cron expression raises `ValueError` immediately at decoration time:
 def my_cron_task() -> None:
     ...
 ```
+
+</br>
 
 ### Contributing
 
